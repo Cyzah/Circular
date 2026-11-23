@@ -102,8 +102,8 @@ switch ($Step) {
             throw 'Invalid release mode.'
         }
         if ($env:RELEASE_EDITION -cnotin @('github', 'lspRepo')) { throw 'Invalid APK edition.' }
-        if ($env:RELEASE_EDITION -eq 'lspRepo' -and $env:RELEASE_MODE -ne 'none') {
-            throw 'Choose none to download the repository APK for upload to LSPosed.'
+        if ($env:RELEASE_EDITION -eq 'github' -and $env:RELEASE_MODE -ne 'none') {
+            throw 'The ordinary APK is available as a workflow download only.'
         }
         $commit = git rev-parse HEAD
         if ($LASTEXITCODE -ne 0 -or $commit -notmatch '^[0-9a-f]{40}$') { throw 'Cannot resolve source commit.' }

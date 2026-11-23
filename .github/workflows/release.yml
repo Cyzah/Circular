@@ -1,27 +1,27 @@
 name: Build Release APK
-run-name: Release APK · ${{ github.ref_name }} · ${{ inputs.edition || 'github' }} · ${{ inputs.release_mode || 'none' }}
+run-name: Release APK · ${{ github.ref_name }} · ${{ inputs.edition || 'lspRepo' }} · ${{ github.event_name == 'workflow_dispatch' && inputs.edition != 'github' && inputs.release_mode || 'none' }}
 
 on:
   workflow_dispatch:
     inputs:
       edition:
-        description: '普通版（github）或 LSPosed 仓库版（lspRepo，仅下载）'
+        description: 'LSPosed 仓库版（lspRepo）或普通版（github，仅下载）'
         type: choice
         required: true
-        default: github
+        default: lspRepo
         options:
-          - github
           - lspRepo
+          - github
       release_mode:
-        description: '发布方式：none 仅下载；draft 草稿；prerelease 预发布；release 正式版'
+        description: 'LSPosed 仓库版发布方式（普通版始终仅下载）'
         type: choice
         required: true
-        default: none
+        default: release
         options:
-          - none
+          - release
           - draft
           - prerelease
-          - release
+          - none
   push:
     tags:
       - 'v[0-9]*.[0-9]*.[0-9]*'
@@ -40,7 +40,8 @@ jobs:
     runs-on: windows-2025
     timeout-minutes: 45
     env:
-      RELEASE_EDITION: ${{ inputs.edition || 'github' }}
+      RELEASE_EDITION: ${{ inputs.edition || 'lspRepo' }}
+      RELEASE_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.edition != 'github' && inputs.release_mode || 'none' }}
     defaults:
       run:
         shell: pwsh
@@ -71,13 +72,11 @@ jobs:
 
       - name: Validate version and tag
         id: version
-        env:
-          RELEASE_MODE: ${{ inputs.release_mode || 'none' }}
         run: ./tools/release-workflow.ps1 -Step ValidateVersion
 
       - name: Check release version and protect existing releases
         id: release-history
-        if: github.event_name == 'workflow_dispatch' && env.RELEASE_EDITION == 'github' && inputs.release_mode != 'none'
+        if: env.RELEASE_MODE != 'none'
         env:
           GH_TOKEN: ${{ github.token }}
           GH_CONFIG_DIR: ${{ github.workspace }}/Circular_Kotlin/.local/github
@@ -129,7 +128,7 @@ jobs:
           include-hidden-files: false
 
       - name: Generate release description from Git history
-        if: github.event_name == 'workflow_dispatch' && env.RELEASE_EDITION == 'github' && inputs.release_mode != 'none'
+        if: env.RELEASE_MODE != 'none'
         env:
           VERSION: ${{ steps.version.outputs.version }}
           SOURCE_COMMIT: ${{ steps.version.outputs.commit }}
@@ -137,14 +136,14 @@ jobs:
         run: ./tools/release-workflow.ps1 -Step GenerateChangelog
 
       - name: Create a complete draft release
-        if: github.event_name == 'workflow_dispatch' && env.RELEASE_EDITION == 'github' && inputs.release_mode != 'none'
+        if: env.RELEASE_MODE != 'none'
         uses: softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3 # v3.0.4
         with:
           name: Circular ${{ steps.version.outputs.version }}
           tag_name: ${{ steps.version.outputs.tag }}
           target_commitish: ${{ steps.version.outputs.commit }}
           draft: true
-          prerelease: ${{ inputs.release_mode == 'prerelease' }}
+          prerelease: ${{ env.RELEASE_MODE == 'prerelease' }}
           body_path: Circular_Kotlin/delivery/${{ steps.version.outputs.version }}/CHANGELOG.md
           overwrite_files: false
           fail_on_unmatched_files: true
@@ -153,12 +152,11 @@ jobs:
             Circular_Kotlin/delivery/${{ steps.version.outputs.version }}/SHA256SUMS.txt
 
       - name: Publish the selected Release or prerelease
-        if: github.event_name == 'workflow_dispatch' && env.RELEASE_EDITION == 'github' && (inputs.release_mode == 'release' || inputs.release_mode == 'prerelease')
+        if: env.RELEASE_MODE == 'release' || env.RELEASE_MODE == 'prerelease'
         env:
           GH_TOKEN: ${{ github.token }}
           GH_CONFIG_DIR: ${{ github.workspace }}/Circular_Kotlin/.local/github
           RELEASE_TAG: ${{ steps.version.outputs.tag }}
-          RELEASE_MODE: ${{ inputs.release_mode }}
         run: ./tools/release-workflow.ps1 -Step PublishRelease
 
       - name: Ensure this run's signing file is removed

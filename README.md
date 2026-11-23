@@ -19,7 +19,7 @@
 
 ## 安装与启用
 
-1. 安装所选渠道的已签名 Circular APK。普通版在 GitHub Releases 发布，包名是 `com.cyzah.circular`。LSPosed 仓库版的包名是 `io.github.cyzah.circular`。
+1. 从源码仓库的 GitHub Releases 下载已签名的 LSPosed 仓库版 APK（`io.github.cyzah.circular`）。普通版（`com.cyzah.circular`）在对应的 GitHub Actions 运行页面通过 Artifacts 提供下载。
 2. 在 LSPosed 中启用 Circular。模块作用域限定为 `com.android.systemui`。
 3. 重启设备，或打开应用重启系统界面。普通版的入口在「工具」，LSPosed 仓库版的入口在「关于」。
 4. 打开 Circular 设置页，在“预览”和“外观”中调整显示效果。
