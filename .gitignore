@@ -1,0 +1,21 @@
+# 本机环境、签名和凭据
+/.local/
+local.properties
+local-signing.properties
+.env
+.env.*
+*.jks
+*.keystore
+*.p12
+*.pfx
+*.p8
+*.pem
+*.key
+
+# 工具缓存和构建产物
+.gradle/
+.kotlin/
+/.idea/
+build/
+/delivery/
+*.apk

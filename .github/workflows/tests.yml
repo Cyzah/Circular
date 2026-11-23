@@ -1,0 +1,173 @@
+name: Tests
+run-name: Tests · ${{ github.ref_name }}
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'app/**'
+      - 'tools/**'
+      - 'gradle/**'
+      - '*.gradle.kts'
+      - 'gradle.properties'
+      - 'gradlew*'
+      - 'version.properties'
+      - '.github/workflows/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'app/**'
+      - 'tools/**'
+      - 'gradle/**'
+      - '*.gradle.kts'
+      - 'gradle.properties'
+      - 'gradlew*'
+      - 'version.properties'
+      - '.github/workflows/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: circular-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    name: Unit tests, Lint and Debug build
+    runs-on: windows-2025
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: pwsh
+        working-directory: Circular_Kotlin
+
+    steps:
+
+      - name: Check out the exact source commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          path: Circular_Kotlin
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Prepare workspace and read-only runner tools
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $root = (Get-Location).Path
+          if ([IO.Path]::GetFileName($root) -ne 'Circular_Kotlin') { throw 'Unexpected project root.' }
+          # Miuix theme classes require JDK 21; the app targets JVM 17.
+          $jdk = $env:JAVA_HOME_21_X64
+          $sdk = $env:ANDROID_HOME
+          if (!$jdk -or !(Test-Path -LiteralPath (Join-Path $jdk 'bin/java.exe'))) {
+              throw 'The Windows runner must provide JDK 21 for MIUIX unit tests.'
+          }
+          if (!$sdk) { throw 'The Windows runner must provide the Android SDK.' }
+          $config = Get-Content -LiteralPath 'app/build.gradle.kts' -Raw
+          $major = [regex]::Match($config, 'compileSdk\s*=\s*(\d+)').Groups[1].Value
+          $minor = [regex]::Match($config, 'compileSdkMinor\s*=\s*(\d+)').Groups[1].Value
+          if (!$major) { throw 'Cannot resolve compileSdk.' }
+          $platform = if ($minor -and [int]$minor -gt 0) { "$major.$minor" } else { $major }
+          foreach ($relative in @(
+              "platforms/android-$platform/android.jar",
+              'build-tools/36.0.0/aapt2.exe',
+              'build-tools/36.0.0/apksigner.bat',
+              'cmdline-tools/latest/bin/apkanalyzer.bat'
+          )) {
+              if (!(Test-Path -LiteralPath (Join-Path $sdk $relative))) {
+                  throw "Runner SDK component is unavailable: $relative. Update the runner image or provision it inside .local/android-sdk/."
+              }
+          }
+          foreach ($relative in @(
+              '.local/gradle-home', '.local/gradle-project', '.local/kotlin',
+              '.local/android/avd', '.local/runtime-home', '.local/tmp'
+          )) { [void][IO.Directory]::CreateDirectory((Join-Path $root $relative)) }
+          $runtimeHome = (Join-Path $root '.local/runtime-home').Replace('\', '/')
+          $temporary = (Join-Path $root '.local/tmp').Replace('\', '/')
+          $settings = @{
+              JAVA_HOME = $jdk
+              ANDROID_HOME = $sdk
+              ANDROID_SDK_ROOT = $sdk
+              GRADLE_USER_HOME = Join-Path $root '.local/gradle-home'
+              ANDROID_USER_HOME = Join-Path $root '.local/android'
+              ANDROID_AVD_HOME = Join-Path $root '.local/android/avd'
+              TEMP = $temporary
+              TMP = $temporary
+              JAVA_TOOL_OPTIONS = "-Duser.home=`"$runtimeHome`" -Djava.io.tmpdir=`"$temporary`" -XX:-UsePerfData"
+          }
+          foreach ($entry in $settings.GetEnumerator()) {
+              "$($entry.Key)=$($entry.Value)" | Out-File -LiteralPath $env:GITHUB_ENV -Append -Encoding utf8
+          }
+          (Join-Path $jdk 'bin') | Out-File -LiteralPath $env:GITHUB_PATH -Append -Encoding utf8
+          if (Test-Path -LiteralPath 'local.properties') { throw 'Refusing to overwrite local.properties.' }
+          [IO.File]::WriteAllText((Join-Path $root 'local.properties'),
+              ('sdk.dir=' + $sdk.Replace('\', '/').Replace(':', '\:') + "`n"), [Text.UTF8Encoding]::new($false))
+
+      - name: Cache Gradle dependencies
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            Circular_Kotlin/.local/gradle-home/caches
+            Circular_Kotlin/.local/gradle-home/wrapper
+          key: windows-circular-gradle-${{ hashFiles('Circular_Kotlin/gradle/wrapper/gradle-wrapper.properties', 'Circular_Kotlin/gradle/libs.versions.toml', 'Circular_Kotlin/*.gradle.kts', 'Circular_Kotlin/app/*.gradle.kts', 'Circular_Kotlin/gradle.properties') }}-tests-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            windows-circular-gradle-${{ hashFiles('Circular_Kotlin/gradle/wrapper/gradle-wrapper.properties', 'Circular_Kotlin/gradle/libs.versions.toml', 'Circular_Kotlin/*.gradle.kts', 'Circular_Kotlin/app/*.gradle.kts', 'Circular_Kotlin/gradle.properties') }}-
+            windows-circular-gradle-
+
+      - name: Check source maintainability
+        run: |
+          $global:LASTEXITCODE = 0
+          & ./tools/check-maintainability.ps1
+          if ($LASTEXITCODE -ne 0) { throw 'Maintainability check failed.' }
+
+      - name: Run unit tests, Lint and Debug builds for both editions
+        run: |
+          $root = (Get-Location).Path
+          $arguments = @(
+              '--project-cache-dir', (Join-Path $root '.local/gradle-project'),
+              ('-Pkotlin.project.persistent.dir=' + (Join-Path $root '.local/kotlin')),
+              '-Pkotlin.project.persistent.dir.gradle.disableWrite=true',
+              '-PuseReleaseSigningForDebug=false',
+              ':app:testGithubDebugUnitTest', ':app:lintGithubDebug', ':app:assembleGithubDebug',
+              ':app:testLspRepoDebugUnitTest', ':app:lintLspRepoDebug', ':app:assembleLspRepoDebug'
+          )
+          & ./tools/build.ps1 -Tasks $arguments
+          if ($LASTEXITCODE -ne 0) { throw 'Debug checks failed.' }
+
+      - name: Verify the identity, module entry and tools of both Debug APKs
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $root = (Get-Location).Path
+          . ./tools/ApkPaths.ps1
+          . ./tools/ApkContract.ps1
+          $apkTools = Get-CircularApkTools $root
+          foreach ($edition in @('github', 'lspRepo')) {
+              $apk = Get-CircularApkPath -Root $root -Edition $edition -Variant debug
+              Assert-CircularApkIdentity -Root $root -ApkPath $apk -Analyzer $apkTools.Analyzer -Edition $edition
+              $classes = @(Get-DefinedClassNames (Invoke-ApkTool $apkTools.Analyzer @('dex', 'packages', '--defined-only', $apk)))
+              Assert-Contract ($classes -ccontains 'com.cyzah.circular.hook.runtime.ModuleMain') "$edition Hook entry is packaged"
+              Assert-Contract ($classes -ccontains 'com.cyzah.circular.ui.screen.SystemUiRestartKt') "$edition SystemUI restart is packaged"
+              $hasTools = $classes -ccontains 'com.cyzah.circular.ui.screen.ToolsScreenKt'
+              Assert-Contract ($hasTools -eq ($edition -eq 'github')) "$edition tools page matches its edition"
+              if ($edition -eq 'lspRepo') {
+                  $exports = @($classes | Where-Object { $_ -clike 'com.cyzah.circular.framework.export.*' })
+                  Assert-Contract ($exports.Count -eq 0) 'repository APK omits export classes'
+              }
+          }
+
+      - name: Retain test and Lint reports for 14 days
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: Tests-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            Circular_Kotlin/app/build/test-results/testGithubDebugUnitTest/
+            Circular_Kotlin/app/build/test-results/testLspRepoDebugUnitTest/
+            Circular_Kotlin/app/build/reports/tests/testGithubDebugUnitTest/
+            Circular_Kotlin/app/build/reports/tests/testLspRepoDebugUnitTest/
+            Circular_Kotlin/app/build/reports/lint-results-*Debug.*
+          if-no-files-found: ignore
+          retention-days: 14
+          include-hidden-files: false

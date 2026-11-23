@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="system_ui_restart_hint">更新安装包后，如需加载新版图标功能，可在“工具”中重启系统界面。页面设置和文件导出可直接使用。</string>
+</resources>

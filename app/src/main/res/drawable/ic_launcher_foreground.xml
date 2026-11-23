@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:height="108dp"
+    android:width="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:scaleX="0.5"
+        android:scaleY="0.5"
+        android:translateX="24"
+        android:translateY="24">
+        <!-- DUO at default weight: connected Wi-Fi, battery digits hidden. -->
+        <path
+            android:fillColor="#00000000"
+            android:pathData="M16.98,83.48097 A50,50 0,1 1,103.02,83.48097"
+            android:strokeColor="@color/launcher_foreground"
+            android:strokeWidth="9"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"/>
+        <group android:translateY="-2">
+            <path
+                android:fillColor="@color/launcher_foreground"
+                android:pathData="M58.5,38.92 C66.15,38.64 74.85,41.07 81.3,45.15 C82.68,46.02 84.11,46.96 84.44,48.7 C84.95,51.45 82.28,53.91 79.58,53.23 C78.76,53.02 78.09,52.42 77.38,51.98 C73.09,49.33 68.03,47.47 62.99,46.92 C56.17,46.17 49.75,47.97 43.93,51.41 C41.92,52.6 40.33,54.25 37.8,53.13 C35.7,52.2 34.88,49.7 36.01,47.7 C36.7,46.47 38.71,45.3 39.92,44.58 C45.35,41.38 52.17,39.15 58.5,38.92 Z"/>
+            <path
+                android:fillColor="@color/launcher_foreground"
+                android:pathData="M58.72,51.32 C62.89,51.15 67.13,52.13 70.8,54.07 C72.23,54.82 74.32,56.05 74.95,57.6 C75.94,60.01 74.14,62.83 71.55,62.97 C69.89,63.07 69.55,62.55 68.31,61.75 C63.04,58.34 56.45,58.29 51.14,61.66 C50.51,62.06 49.9,62.64 49.17,62.83 C45.48,63.81 42.53,59.79 44.94,56.7 C46.05,55.29 48.23,54.13 49.86,53.42 C52.64,52.2 55.67,51.44 58.72,51.32 Z"/>
+            <path
+                android:fillColor="@color/launcher_foreground"
+                android:pathData="M59.05,63.97 C61.34,63.86 64.49,64.55 66.23,66.14 C67.77,67.55 66.91,69.05 65.81,70.33 C64.88,71.41 63.83,72.54 62.85,73.58 C62.06,74.42 61.31,75.36 60.07,75.45 C59.1,75.51 58.35,75.27 57.65,74.61 C56.52,73.53 55.31,72.15 54.25,70.98 C53.85,70.54 53.33,70.01 52.99,69.54 C50.45,66.01 56.51,64.1 59.05,63.97 Z"/>
+        </group>
+        <path
+            android:fillColor="@color/launcher_foreground"
+            android:pathData="M29.88,86.42 a5.88,5.88 0,1 0,11.76,0 a5.88,5.88 0,1 0,-11.76,0 Z
+                M46.04,86.42 a5.88,5.88 0,1 0,11.76,0 a5.88,5.88 0,1 0,-11.76,0 Z
+                M62.2,86.42 a5.88,5.88 0,1 0,11.76,0 a5.88,5.88 0,1 0,-11.76,0 Z
+                M78.36,86.42 a5.88,5.88 0,1 0,11.76,0 a5.88,5.88 0,1 0,-11.76,0 Z
+                M29.88,102.58 a5.88,5.88 0,1 0,11.76,0 a5.88,5.88 0,1 0,-11.76,0 Z
+                M46.04,102.58 a5.88,5.88 0,1 0,11.76,0 a5.88,5.88 0,1 0,-11.76,0 Z
+                M62.2,102.58 a5.88,5.88 0,1 0,11.76,0 a5.88,5.88 0,1 0,-11.76,0 Z
+                M78.36,102.58 a5.88,5.88 0,1 0,11.76,0 a5.88,5.88 0,1 0,-11.76,0 Z"/>
+    </group>
+</vector>
