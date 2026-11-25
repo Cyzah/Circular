@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       edition:
-        description: 'LSPosed 仓库版（lspRepo）或普通版（github，仅下载）'
+        description: '构建版本'
         type: choice
         required: true
         default: lspRepo
@@ -13,7 +13,7 @@ on:
           - lspRepo
           - github
       release_mode:
-        description: 'LSPosed 仓库版发布方式（普通版始终仅下载）'
+        description: '发布方式'
         type: choice
         required: true
         default: release
