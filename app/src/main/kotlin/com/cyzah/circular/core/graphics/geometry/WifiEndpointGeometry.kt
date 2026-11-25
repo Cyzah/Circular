@@ -9,7 +9,7 @@ object WifiEndpointGeometry {
         style: DualStyle?, dual: Boolean, swapped: Boolean, showPercent: Boolean,
         regularY: Float, headerY: Float, glyphCentreY: Float, scale: Float
     ): Float {
-        if (dual && style == DualStyle.CAPSULE) {
+        if (style == DualStyle.CAPSULE) {
             return 60.0f
         }
         if (dual && style == DualStyle.DUO) {

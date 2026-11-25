@@ -57,12 +57,16 @@ object AppearanceProjectionOracle {
         keep: Boolean, legacy: Boolean, placement: Int
     ) {
         val cc = expanded && !keep
-        val weight = if (legacy) 100 else 135
+        val weight = if (cc) 100 else if (legacy) 100 else 135
         val expected = arrayOf<Any?>(
             2, 23, if (cc) 27 else (if (style == DualStyle.DUO) 23 else 28),
-            weight, 118, if (legacy) 115 else 125, 125,
-            if (legacy) 100 else 115, if (legacy) 100 else 80,
-            if (legacy) 100 else 155, true, keep, true, style == DualStyle.GROUPED,
+            weight,
+            if (cc) 100 else 118,
+            if (cc) 120 else if (legacy) 115 else 125,
+            if (cc) 110 else 125,
+            if (cc) 110 else if (legacy) 100 else 115,
+            if (cc) 105 else if (legacy) 100 else 80,
+            if (cc) 125 else if (legacy) 100 else 155, true, keep, true, style == DualStyle.GROUPED,
             style == DualStyle.CAPSULE, style == DualStyle.DUO,
             -0xeeddcd, -0xddccbc, -0xccbbab, -0xbbaa9a, 17,
             false,

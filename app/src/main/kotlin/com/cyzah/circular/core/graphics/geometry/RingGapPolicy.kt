@@ -72,8 +72,8 @@ object RingGapPolicy {
         val weight = max(0.01f, weightScale)
         val dotHalfAngle = Math.toDegrees(
             atan2(
-                (60.0f - SignalSpacing.ringX(0, weight)).toDouble(),
-                (SignalSpacing.ringY(0, weight) - 58.0f).toDouble()
+                (60.0f - SignalSpacing.singleRingX(0, weight)).toDouble(),
+                (SignalSpacing.singleRingY(0, weight) - 58.0f).toDouble()
             )
         ).toFloat()
         val minimumDistance = (SignalSpacing.radius(weight)

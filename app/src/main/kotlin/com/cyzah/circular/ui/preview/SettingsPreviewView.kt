@@ -313,7 +313,7 @@ class SettingsPreviewView(
 
     private fun configurePainter(target: IconPainter, settings: AppearanceSettings) {
         PainterConfigurator.apply(target, settings, this.runtime.duoWifiProgress())
-        target.setCapsuleDual(this.state.dualSim() && settings.capsuleDual())
+        target.setCapsuleDual(settings.capsuleDual())
         target.setDuoDual(this.state.dualSim() && settings.duoDual())
         target.setCapsuleAspect(IconPainter.Companion.CAPSULE_ASPECT)
         target.setCapsuleCentred(false)
@@ -636,7 +636,10 @@ class SettingsPreviewView(
         else
             0.0f
         val labelSize: Float =
-            StackedSignals.Companion.labelSize(this.settingsCache.expanded().technologyScale()) * density
+            StackedSignals.Companion.labelSize(
+                if (this.state.dualSim()) this.settingsCache.expanded().technologyScale()
+                else com.cyzah.circular.domain.settings.ControlCenterAppearance.SINGLE_TECHNOLOGY_SCALE
+            ) * density
         val labelWidth = max(
             this.rowPainter.measureTechnology(previewFirstLabel(), labelSize),
             this.rowPainter.measureTechnology(previewSecondLabel(), labelSize)
@@ -648,7 +651,10 @@ class SettingsPreviewView(
             this.rowPainter.wifiHalfWidth(
                 ControlCenterAppearance.WIFI_FINAL_CANVAS_SCALE * this.settingsCache.expanded().wifiScale() / 100.0f
             ) * 2.0f,
-            StackedSignals.Companion.fillWidthPx(labelWidth, density, placement),
+            if (this.state.dualSim())
+                StackedSignals.Companion.fillWidthPx(labelWidth, density, placement)
+            else
+                StackedSignals.Companion.singleRowFillWidthPx(labelWidth, density),
             this.state.battery >= 0,
             this.state.showWifi() || (!animateReflow && this.state.dualSim()
                     && this.styleSource.current() == DualStyle.DUO && this.runtime.duoWifiProgress() > 0.0f),
@@ -709,7 +715,7 @@ class SettingsPreviewView(
         canvas: Canvas?, settings: AppearanceSettings,
         ringLeft: Float, ringTop: Float, size: Float, progress: Float, tint: Int
     ) {
-        val style = if (this.state.dualSim()) settings.dualStyle() else DualStyle.LAYERED
+        val style = settings.dualStyle()
         val unit = size / 120.0f
         val homeX = this.painter.wifiReadoutCentreX(this.state)
         val homeY = this.painter.wifiReadoutCentreY(this.state)
@@ -746,7 +752,7 @@ class SettingsPreviewView(
         density: Float, progress: Float, tint: Int
     ) {
         val unit = size / 120.0f
-        val style = if (this.state.dualSim()) settings.dualStyle() else DualStyle.LAYERED
+        val style = settings.dualStyle()
         this.stackedOverlay.frame(
             this.row.left(ControlCenterRowComponent.CELLULAR),
             this.row.right(ControlCenterRowComponent.CELLULAR),

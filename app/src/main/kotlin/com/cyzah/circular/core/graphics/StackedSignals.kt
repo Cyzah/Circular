@@ -97,7 +97,7 @@ class StackedSignals {
     private fun topBaseline(): Float {
         if (this.rows == 1) {
             // 单排：四条把最高的那条竖直居中
-            return TOP_ROW_TOP / 2.0f
+            return SINGLE_ROW_TOP / 2.0f
         }
         return (TOP_ROW_TOP - DEFAULT_GAP - BOTTOM_ROW_HEIGHT) / 2.0f
     }
@@ -168,14 +168,18 @@ class StackedSignals {
                         + LEFT_PAD_DP) * scale))
             val sourceAnchorY: Float = (centerY
                     + ((if (row == 0)
-                fBaseline - (TOP_ROW_TOP / 2.0f)
+                fBaseline - ((if (this.rows == 1) SINGLE_ROW_TOP else TOP_ROW_TOP) / 2.0f)
             else
                 (fBaseline + DEFAULT_GAP
                         + (BOTTOM_ROW_HEIGHT / 2.0f))) * scale))
             val iLevel = if (levels == null || row >= levels.size) 0 else max(0, min(BARS, levels[row]))
             for (i in 0..<BARS) {
                 val iElement: Int = (row * BARS) + i
-                val fBarHeight: Float = if (row == 0) TOP_ROW_BASE + (i * TOP_ROW_RISE) else BOTTOM_ROW_HEIGHT
+                val fBarHeight: Float = if (row == 0) {
+                    if (this.rows == 1) singleRowBarHeight(i) else TOP_ROW_BASE + (i * TOP_ROW_RISE)
+                } else {
+                    BOTTOM_ROW_HEIGHT
+                }
                 var fBarX: Float = BAR_FIRST_X + (i * BAR_STEP)
                 if (rtl) {
                     fBarX = BAR_SPAN - fBarX
@@ -278,6 +282,10 @@ class StackedSignals {
         private val TOP_ROW_BASE: Float = 3.0f * EXPANDED_SCALE
         private val TOP_ROW_RISE: Float = 1.5f * EXPANDED_SCALE
         private val TOP_ROW_TOP: Float = TOP_ROW_BASE + (TOP_ROW_RISE * (BARS - 1))
+        private const val SINGLE_ROW_BASE = 4.6f
+        private const val SINGLE_ROW_RISE = 2.3f
+        private const val SINGLE_ROW_TOP = 11.5f
+        private const val SINGLE_LABEL_GAP = 1.5f
         private val BOTTOM_ROW_HEIGHT: Float = 3.0f * EXPANDED_SCALE
         private const val TEXT_SIZE = 7.0f
 
@@ -329,6 +337,74 @@ class StackedSignals {
             return TEXT_SIZE * DisplayPolicy.centrePercent(percent) / 100.0f
         }
 
+        @JvmStatic fun singleRowBarHeight(index: Int): Float {
+            return SINGLE_ROW_BASE + (max(0, min(BARS - 1, index)) * SINGLE_ROW_RISE)
+        }
+
+        @JvmStatic fun singleRowHeight(): Float {
+            return SINGLE_ROW_TOP
+        }
+
+        @JvmStatic fun singleRowLabelCentreOffset(textSizePx: Float, density: Float): Float {
+            val shortestBarTop = (SINGLE_ROW_TOP / 2.0f) - SINGLE_ROW_BASE
+            return ((shortestBarTop - SINGLE_LABEL_GAP) * density) - (textSizePx / 2.0f)
+        }
+
+        @JvmStatic fun singleRowShortestBarCentreX(
+            rowLeft: Float,
+            density: Float,
+            rtl: Boolean
+        ): Float {
+            val offset = if (rtl)
+                BAR_SPAN - BAR_FIRST_X - LEFT_PAD_DP
+            else
+                BAR_FIRST_X + LEFT_PAD_DP
+            return rowLeft + (offset * density)
+        }
+
+        @JvmStatic fun singleRowLabelLeft(
+            rowLeft: Float,
+            density: Float,
+            rtl: Boolean,
+            textWidth: Float
+        ): Float {
+            return singleRowShortestBarCentreX(rowLeft, density, rtl) - (textWidth / 2.0f)
+        }
+
+        @JvmStatic fun singleRowBarLeft(
+            left: Float,
+            right: Float,
+            density: Float,
+            rtl: Boolean,
+            textWidth: Float
+        ): Float {
+            val shortBarOffset = if (rtl)
+                BAR_SPAN - BAR_FIRST_X - LEFT_PAD_DP
+            else
+                BAR_FIRST_X + LEFT_PAD_DP
+            val targetCentre = if (rtl)
+                right - textWidth / 2.0f
+            else
+                left + textWidth / 2.0f
+            return targetCentre - (shortBarOffset * density)
+        }
+
+        @JvmStatic fun singleRowFillWidthPx(textWidth: Float, density: Float): Float {
+            if (!java.lang.Float.isFinite(density) || density <= 0.0f) {
+                return 0.0f
+            }
+            if (!java.lang.Float.isFinite(textWidth) || textWidth <= 0.0f) {
+                return (BLOCK_SPAN_DP + LEFT_PAD_DP) * density
+            }
+            val signalReachFromShortestBar = (3.0f * BAR_STEP) + (BAR_WIDTH / 2.0f)
+            val textLeftFromLabelCentre = textWidth / 2.0f
+            val signalLeftFromLabelCentre = textLeftFromLabelCentre - (BAR_WIDTH * density / 2.0f)
+            val signalRightFromLabelCentre = textLeftFromLabelCentre + (signalReachFromShortestBar * density)
+            val left = min(0.0f, signalLeftFromLabelCentre)
+            val right = max(textWidth, signalRightFromLabelCentre)
+            return right - left
+        }
+
         /**
          * 「铺满」布局下整条排真正需要的宽度（px）：条带跨度 + 条带与文本的间距 + 文本宽。
          * 
@@ -375,7 +451,7 @@ class StackedSignals {
         /** 当前排数下，展开态信号条相对垂直中心的可见底边偏移。  */
         @JvmStatic fun sourceVisualBottomOffset(rows: Int, scale: Float): Float {
             return ((if (rows <= 1)
-                TOP_ROW_TOP / 2.0f
+                SINGLE_ROW_TOP / 2.0f
             else
                 (TOP_ROW_TOP + DEFAULT_GAP + BOTTOM_ROW_HEIGHT) / 2.0f)
                     * scale)

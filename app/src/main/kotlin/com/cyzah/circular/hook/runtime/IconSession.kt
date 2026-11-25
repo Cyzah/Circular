@@ -736,7 +736,11 @@ class IconSession(
 
     /** 双排整块在「铺满」布局下占的宽度（px）：条带 + 间距 + 制式文本  */
     fun stackedReservePx(density: Float): Float {
-        val fSize: Float = StackedSignals.Companion.labelSize() * density
+        val dual = module.state.dualSim()
+        val fSize: Float = StackedSignals.Companion.labelSize(
+            if (dual) module.sessionSettings().technologyScale()
+            else com.cyzah.circular.domain.settings.ControlCenterAppearance.SINGLE_TECHNOLOGY_SCALE
+        ) * density
         var fText = 0.0f
         // 双排一律带制式文本（原「双排显示网络类型」开关已移除）：取两排里最宽的那一个
         val iconState = module.state
@@ -759,11 +763,10 @@ class IconSession(
             this.module.controlCenterSettings()
         val placement =
             controlCenterSettings.batteryNumberPlacement()
-        val reserve: Float = StackedSignals.Companion.fillWidthPx(
-            fText,
-            density,
-            placement
-        )
+        val reserve: Float = if (dual)
+            StackedSignals.Companion.fillWidthPx(fText, density, placement)
+        else
+            StackedSignals.Companion.singleRowFillWidthPx(fText, density)
         val minimumPx = this.dp(
             controlCenterSettings.batterySize()
         ).toFloat()

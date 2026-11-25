@@ -18,7 +18,7 @@ class StackedSignalsGeometryTest {
             StackedSignals.Companion.sourceVisualBottomOffset(2, 3.0f), EPSILON
         )
         Assert.assertEquals(
-            4.0625f,
+            5.75f,
             StackedSignals.Companion.sourceVisualBottomOffset(1, 1.0f), EPSILON
         )
     }
@@ -45,6 +45,25 @@ class StackedSignalsGeometryTest {
             47.3f,
             StackedSignals.fillWidthPx(0.0f, 2.0f), EPSILON
         )
+    }
+
+    @Test
+    fun singleRowReservationMatchesTheStackedLabelAndSignalGeometry() {
+        val labelWidth = 20.0f
+        val density = 2.0f
+        val width = StackedSignals.Companion.singleRowFillWidthPx(labelWidth, density)
+        val left = 20.0f
+        val right = left + width
+        val barLeft = StackedSignals.Companion.singleRowBarLeft(
+            left, right, density, false, labelWidth
+        )
+        val shortestBarCentre = StackedSignals.Companion.singleRowShortestBarCentreX(
+            barLeft, density, false
+        )
+
+        Assert.assertEquals(30.0f, shortestBarCentre, EPSILON)
+        Assert.assertEquals(38.816666f, width, EPSILON)
+        Assert.assertEquals(47.3f, StackedSignals.Companion.singleRowFillWidthPx(0.0f, density), EPSILON)
     }
 
     @Test

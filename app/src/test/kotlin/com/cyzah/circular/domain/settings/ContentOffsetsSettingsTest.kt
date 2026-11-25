@@ -19,7 +19,7 @@ class ContentOffsetsSettingsTest {
     }
 
     @Test
-    fun expandedControlCenterPreservesUserAppearanceAcrossEveryStyle() {
+    fun expandedControlCenterUsesFixedComponentValuesAcrossEveryStyle() {
         for (style in DualStyle.entries) {
             val values = Values()
             values.values.put("dual_dots_grouped", style == DualStyle.GROUPED)
@@ -36,35 +36,35 @@ class ContentOffsetsSettingsTest {
             values.values.put("swap_contents", true)
             val source: AppearanceSettings = AppearanceSettings.Companion.from(SettingsSnapshot.Companion.from(values))
             val expanded = source.controlCenter()
-            Assert.assertEquals(style.toString() + " weight", source.weight().toLong(), expanded.weight().toLong())
+            Assert.assertEquals(style.toString() + " weight", 100, expanded.weight().toLong())
             Assert.assertEquals(
                 style.toString() + " wifiScale",
-                source.wifiScale().toLong(),
+                110,
                 expanded.wifiScale().toLong()
             )
             Assert.assertEquals(
                 style.toString() + " wifiWeight",
-                source.wifiWeight().toLong(),
+                100,
                 expanded.wifiWeight().toLong()
             )
             Assert.assertEquals(
                 style.toString() + " technologyScale",
-                source.technologyScale().toLong(),
+                110,
                 expanded.technologyScale().toLong()
             )
             Assert.assertEquals(
                 style.toString() + " technologyWeight",
-                source.technologyWeight().toLong(),
+                120,
                 expanded.technologyWeight().toLong()
             )
             Assert.assertEquals(
                 style.toString() + " percentScale",
-                source.percentScale().toLong(),
+                105,
                 expanded.percentScale().toLong()
             )
             Assert.assertEquals(
                 style.toString() + " percentWeight",
-                source.percentWeight().toLong(),
+                125,
                 expanded.percentWeight().toLong()
             )
             Assert.assertEquals(style.toString() + " showPercent", source.showPercent(), expanded.showPercent())

@@ -12,6 +12,7 @@ import com.cyzah.circular.core.graphics.geometry.StackedOverlayLayout
 import com.cyzah.circular.core.network.IconState
 import com.cyzah.circular.domain.settings.AppearanceScale
 import com.cyzah.circular.domain.settings.BatteryNumberPlacement
+import com.cyzah.circular.domain.settings.ControlCenterAppearance
 import com.cyzah.circular.domain.settings.DualStyle
 import com.cyzah.circular.hook.runtime.SessionPaintPolicy
 import kotlin.math.max
@@ -182,7 +183,10 @@ class StackedOverlayRenderer {
             labels[centreRow] = StackedSignals.Companion.clip(state.centreTechnology())
         }
 
-        val rowSize: Float = StackedSignals.Companion.labelSize(painter.technologyScalePercent()) * density
+        val rowSize: Float = StackedSignals.Companion.labelSize(
+            if (dual) painter.technologyScalePercent()
+            else ControlCenterAppearance.SINGLE_TECHNOLOGY_SCALE
+        ) * density
         val statusBarTechnology =
             StackedTechnologyStyle.usesStatusBarEndpoint(dualStyle)
         val centrePainter: IconPainter? = if (statusBarTechnology) endpointPainter else painter
@@ -204,7 +208,8 @@ class StackedOverlayRenderer {
                 this.labelFitWidth,
                 textWidth,
                 density,
-                numberPlacement
+                numberPlacement,
+                singleRow = !dual
             )
             if (!labelsVisible) {
                 textWidth = 0.0f
@@ -221,6 +226,11 @@ class StackedOverlayRenderer {
             centreBarsWhenLabelsHidden,
             numberPlacement
         )
+        if (!dual && textWidth > 0.0f) {
+            this.barLeft = StackedSignals.Companion.singleRowBarLeft(
+                left, right, density, rtl, textWidth
+            )
+        }
         this.labelLeft = StackedOverlayLayout.labelLeft(
             rtl,
             this.barLeft,
@@ -271,19 +281,30 @@ class StackedOverlayRenderer {
                 ) / 255.0f
                 target.mergeFade[element] = false
             }
-        } else if (dual && dualStyle == DualStyle.CAPSULE) {
+        } else if (dualStyle == DualStyle.CAPSULE) {
+            val capsuleRows = if (dual) StackedSignals.Companion.ROWS else 1
             for (element in 0..<StackedSignals.Companion.ELEMENTS) {
                 val row: Int = element / StackedSignals.Companion.BARS
                 val slot: Int = element % StackedSignals.Companion.BARS
+                if (row >= capsuleRows) {
+                    target.x[element] = trinityLeft
+                    target.y[element] = trinityTop
+                    target.radius[element] = capsuleRadius
+                    target.alpha[element] = 0.0f
+                    target.mergeFade[element] = false
+                    continue
+                }
                 val dot = min(slot, IconPainter.Companion.CAPSULE_DOTS - 1)
+                val capsuleRow = if (dual) row else 1
                 target.x[element] = (trinityLeft
-                        + (endpointPainter.capsuleDotX(state, row, dot)
+                        + (endpointPainter.capsuleDotX(state, capsuleRow, dot)
                         * capsuleUnit))
                 target.y[element] = (trinityTop
-                        + (endpointPainter.capsuleDotY(state, row)
+                        + (endpointPainter.capsuleDotY(state, capsuleRow)
                         * capsuleUnit))
                 target.radius[element] = capsuleRadius
-                val fill = Motion.clamp((bars[row] - (dot * span)) / span)
+                val rowBars = if (dual) bars[row] else state.singleBars()
+                val fill = Motion.clamp((rowBars - (dot * span)) / span)
                 target.alpha[element] = (((48.0f + (fill * 207.0f)) / 255.0f)
                         * (if (row == 0) 1.0f else secondaryAlpha))
                 target.mergeFade[element] = slot == StackedSignals.Companion.BARS - 1
@@ -372,7 +393,7 @@ class StackedOverlayRenderer {
                 ) * targetUnit))
             element++
         }
-        if (!(dual && dualStyle == DualStyle.CAPSULE)) {
+        if (dualStyle != DualStyle.CAPSULE) {
             for (element in 0..<(if (dual) StackedSignals.Companion.ELEMENTS else StackedSignals.Companion.BARS)) {
                 var dx = endpointPainter.contentX(2)
                 var dy = endpointPainter.contentY(2)
@@ -413,7 +434,8 @@ class StackedOverlayRenderer {
                 rowSize,
                 capsuleWifi,
                 this.barLeft,
-                state.showWifi()
+                state.showWifi(),
+                dual
             )
         }
         target.hasBatteryObstacle = !this.batteryObstacle.isEmpty()
@@ -493,7 +515,8 @@ class StackedOverlayRenderer {
         rowSize: Float,
         capsuleWifi: Boolean,
         barLeft: Float,
-        wifiVisible: Boolean
+        wifiVisible: Boolean,
+        dual: Boolean
     ) {
         val opening = this.openingObstacle != null
         val textMorph = if (opening)
@@ -522,11 +545,19 @@ class StackedOverlayRenderer {
             if (alpha <= 0.0f) {
                 continue
             }
-            val rowX = StackedOverlayLayout.labelLeft(
-                rtl, barLeft, rowLabelWidths[row], density
-            )
+            val rowX = if (!dual) {
+                StackedSignals.Companion.singleRowLabelLeft(
+                    barLeft, density, rtl, rowLabelWidths[row]
+                )
+            } else {
+                StackedOverlayLayout.labelLeft(rtl, barLeft, rowLabelWidths[row], density)
+            }
+            val rowCentreOffset = if (!dual)
+                StackedSignals.Companion.singleRowLabelCentreOffset(rowSize, density)
+            else
+                stacked.rowLabelCenter(row) * density
             val rowY = (centreY
-                    + (stacked.rowLabelCenter(row) * density)
+                    + rowCentreOffset
                     + painter.technologyOffset(label, rowSize))
             val size = if (textMorph == 1.0f)
                 rowSize

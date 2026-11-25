@@ -5,6 +5,12 @@ import org.junit.Test
 
 class CapsuleGeometryTest {
     @Test
+    fun singleCardCapsuleClosesItsUpperSignalOpening() {
+        Assert.assertEquals(0.0f, CapsuleGeometry.signalTopHalfOpening(false, 18.0f), 0.0f)
+        Assert.assertEquals(18.0f, CapsuleGeometry.signalTopHalfOpening(true, 18.0f), 0.0f)
+    }
+
+    @Test
     fun contentWidthExcludesTheRemovedChargingBolt() {
         Assert.assertEquals(
             60.0f,

@@ -17,7 +17,8 @@ import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TextField
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-private val styleLabels = listOf("双层信号", "四点分组", "双卡胶囊", "DUO")
+private val dualStyleLabels = listOf("双层信号", "四点分组", "双卡胶囊", "DUO")
+private val singleStyleLabels = listOf("简约圆环", "", "单卡胶囊", "")
 
 @Composable
 internal fun AppearanceScreen(state: SettingsState, onSubpage: (SettingsSubpage) -> Unit) {
@@ -26,12 +27,14 @@ internal fun AppearanceScreen(state: SettingsState, onSubpage: (SettingsSubpage)
     val availableStyles = remember(state.dualSimAvailable) {
         DualStyle.values().filter { DualStyleAvailability.allows(it, state.dualSimAvailable) }
     }
+    val availableStyleLabels = availableStyles.map {
+        if (state.dualSimAvailable) dualStyleLabels[it.ordinal] else singleStyleLabels[it.ordinal]
+    }
     var technology by rememberSaveable { mutableStateOf(ConfigProvider.technologyText(state.prefs)) }
-    Section("双卡样式") {
+    Section(if (state.dualSimAvailable) "信号样式" else "单卡样式") {
         ChoicePreference(
             title = "排列方式",
-            summary = if (state.dualSimAvailable) null else "双卡胶囊与 DUO 需设备支持双卡。",
-            options = availableStyles.map { styleLabels[it.ordinal] },
+            options = availableStyleLabels,
             selected = availableStyles.indexOf(style).coerceAtLeast(0),
             darkTheme = state.darkTheme,
             onSelect = { state.selectStyle(availableStyles[it]) },

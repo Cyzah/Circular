@@ -25,6 +25,10 @@ object CapsuleGeometry {
         return result
     }
 
+    @JvmStatic fun signalTopHalfOpening(dualSim: Boolean, measuredHalfOpening: Float): Float {
+        return if (dualSim) safeLength(measuredHalfOpening) else 0.0f
+    }
+
     @JvmStatic fun minimumBodyWidth(weight: Float): Float {
         val safeWeight = safeLength(weight)
         val height: Float = IconPainter.Companion.CAPSULE_H

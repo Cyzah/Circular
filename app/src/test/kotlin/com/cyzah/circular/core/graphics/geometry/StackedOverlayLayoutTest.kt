@@ -18,6 +18,14 @@ class StackedOverlayLayoutTest {
     }
 
     @Test
+    fun singleRowLabelFitUsesTheOverlappingSignalAndTextWidth() {
+        val required = StackedSignals.Companion.singleRowFillWidthPx(18.0f, 2.0f)
+
+        Assert.assertTrue(StackedOverlayLayout.fitsLabels(required, 18.0f, 2.0f, singleRow = true))
+        Assert.assertFalse(StackedOverlayLayout.fitsLabels(required - 0.01f, 18.0f, 2.0f, singleRow = true))
+    }
+
+    @Test
     fun labelFitUsesTheRowWidthAfterNativeReservation() {
         Assert.assertEquals(
             143.0f,

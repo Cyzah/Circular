@@ -210,14 +210,14 @@ class IconPainter {
         applyContentCutouts(topOpeningBounds, centerOpeningBounds, bottomOpeningBounds)
     }
     fun wifiContentSlot(state: IconState): Int {
-        return if (state.dualSim() && (this.capsuleDual || this.duoRenderer.enabled()))
+        return if (this.capsuleDual || (state.dualSim() && this.duoRenderer.enabled()))
             1
         else
             if (this.swapContents) 0 else 1
     }
     fun technologyContentSlot(state: IconState): Int {
         if (state.dualSim() && this.duoRenderer.enabled()) return 2
-        return if (state.dualSim() && this.capsuleDual) 1 else if (this.swapContents) 0 else 1
+        return if (this.capsuleDual) 1 else if (this.swapContents) 0 else 1
     }
     fun technologyScalePercent(): Int {
         return technologyPercent
@@ -404,7 +404,7 @@ class IconPainter {
     }
     fun updateBatteryRingGeometry(iconState: IconState) {
         this.compactTechnology = iconState.dualSim() && !this.capsuleDual
-        if (iconState.dualSim() && this.capsuleDual) {
+        if (this.capsuleDual) {
             this.capsuleRenderer.updateRingGeometry(this, iconState)
             return
         }
@@ -451,7 +451,7 @@ class IconPainter {
         val savedAlign = this.textPaint.getTextAlign()
         try {
             this.textPaint.setTextAlign(Align.LEFT)
-            if (state.dualSim() && this.capsuleDual) {
+            if (this.capsuleDual) {
                 this.capsuleRenderer.batteryReadoutBounds(this, state, out)
                 return
             }
@@ -488,7 +488,7 @@ class IconPainter {
         } finally {
             this.textPaint.setTextSize(savedSize)
             this.textPaint.setTextAlign(savedAlign)
-            if (!out.isEmpty() && !(state.dualSim() && (this.capsuleDual || this.duoRenderer.enabled()))) {
+            if (!out.isEmpty() && !(this.capsuleDual || (state.dualSim() && this.duoRenderer.enabled()))) {
                 out.offset(contentX(if (this.swapContents) 1 else 0), contentY(if (this.swapContents) 1 else 0))
             }
         }
@@ -910,7 +910,7 @@ class IconPainter {
         return this.wifiScale
     }
     fun wifiReadoutCentreX(state: IconState): Float {
-        return if (state.dualSim() && this.capsuleDual)
+        return if (this.capsuleDual)
             capsuleTextX(state)
         else
             60.0f + contentX(wifiContentSlot(state))
@@ -925,7 +925,7 @@ class IconPainter {
                 + contentY(wifiContentSlot(state)))
     }
     fun wifiReadoutScale(state: IconState): Float {
-        return if (state.dualSim() && this.capsuleDual)
+        return if (this.capsuleDual)
             capsuleWifiScale(state)
         else
             this.wifiScale
@@ -1036,7 +1036,7 @@ class IconPainter {
             val iBatteryTint = DisplayPolicy.batteryTint(
                 iconState.battery, iconState.charging, iconState.powerSave, iconState.performanceMode, z, i, this.lowBatteryThreshold, this.chargeColor, this.lowColor, this.saverColor, this.performanceColor
             )
-            if (iconState.dualSim() && this.capsuleDual) {
+            if (this.capsuleDual) {
                 // 胶囊样式自成一套排版（整条胶囊一次画完）。
                 // Wi-Fi 不在这里单独飞：控制中心那一行的 Wi-Fi 是**原生视图**，
                 // 模块自己有一套「原生 Wi-Fi 视图按展开进度插值」的动画（起点由 anchorY(1) 决定），

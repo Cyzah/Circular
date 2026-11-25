@@ -16,16 +16,17 @@ object StackedOverlayLayout {
         availableWidth: Float,
         textWidth: Float,
         density: Float,
-        placement: BatteryNumberPlacement? = BatteryNumberPlacement.HIDDEN
+        placement: BatteryNumberPlacement? = BatteryNumberPlacement.HIDDEN,
+        singleRow: Boolean = false
     ): Boolean {
         if (textWidth <= 0.0f) {
             return false
         }
-        return availableWidth >= StackedSignals.Companion.fillWidthPx(
-            textWidth,
-            density,
-            placement
-        )
+        val requiredWidth = if (singleRow)
+            StackedSignals.Companion.singleRowFillWidthPx(textWidth, density)
+        else
+            StackedSignals.Companion.fillWidthPx(textWidth, density, placement)
+        return availableWidth >= requiredWidth
     }
 
     @JvmStatic fun allowsLabelFitFallback(

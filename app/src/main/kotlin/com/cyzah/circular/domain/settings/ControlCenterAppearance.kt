@@ -9,6 +9,8 @@ import com.cyzah.circular.domain.settings.StyleProfile
 object ControlCenterAppearance {
     const val BATTERY_SIZE: Int = 27
     const val CAPSULE_WIFI_SCALE: Int = 110
+    const val SINGLE_TECHNOLOGY_SCALE: Int = 90
+    const val SINGLE_TECHNOLOGY_WEIGHT: Int = 120
 
     /**
      * Legacy fallback spacing for hosts without a solved row. The expanded
@@ -20,13 +22,13 @@ object ControlCenterAppearance {
     private val COMMON = StyleProfile(
         27,
         100,
-        95,
         110,
-        95,
-        115,
+        100,
+        110,
+        120,
         true,
-        90,
-        145,
+        105,
+        125,
         false
     )
 

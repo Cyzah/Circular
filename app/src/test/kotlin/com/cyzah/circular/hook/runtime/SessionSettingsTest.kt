@@ -132,14 +132,14 @@ class SessionSettingsTest {
             Assert.assertEquals(29, source.size().toLong())
             Assert.assertEquals(29, locked.size().toLong())
             Assert.assertEquals(27, locked.batterySize().toLong())
-            Assert.assertEquals(80, locked.weight().toLong())
-            Assert.assertEquals(50, locked.wifiScale().toLong())
-            Assert.assertEquals(120, locked.wifiWeight().toLong())
-            Assert.assertEquals(150, locked.technologyScale().toLong())
-            Assert.assertEquals(130, locked.technologyWeight().toLong())
+            Assert.assertEquals(100, locked.weight().toLong())
+            Assert.assertEquals(110, locked.wifiScale().toLong())
+            Assert.assertEquals(100, locked.wifiWeight().toLong())
+            Assert.assertEquals(110, locked.technologyScale().toLong())
+            Assert.assertEquals(120, locked.technologyWeight().toLong())
             Assert.assertTrue(locked.showPercent())
-            Assert.assertEquals(100, locked.percentScale().toLong())
-            Assert.assertEquals(100, locked.percentWeight().toLong())
+            Assert.assertEquals(105, locked.percentScale().toLong())
+            Assert.assertEquals(125, locked.percentWeight().toLong())
             Assert.assertTrue(locked.swapContents())
             Assert.assertFalse(locked.coloured())
             Assert.assertEquals(-0x1000000, locked.chargeColor().toLong())
@@ -243,11 +243,12 @@ class SessionSettingsTest {
         val locked = source.controlCenter()
 
         Assert.assertEquals(source.size().toLong(), locked.size().toLong())
+        Assert.assertEquals(100, locked.weight().toLong())
         Assert.assertEquals(27, locked.batterySize().toLong())
     }
 
     @Test
-    fun flatControlCenterProfileKeepsUserSwapAndPercentChoice() {
+    fun flatControlCenterProfileUsesFixedComponentAppearance() {
         val values: MutableMap<String?, Any?> = HashMap<String?, Any?>()
         values.put("mode", 2)
         values.put("dual_dots_grouped", true)
@@ -268,14 +269,14 @@ class SessionSettingsTest {
 
         Assert.assertTrue(locked.swapContents())
         Assert.assertEquals(source.size().toLong(), locked.size().toLong())
-        Assert.assertEquals(source.weight().toLong(), locked.weight().toLong())
-        Assert.assertEquals(source.wifiScale().toLong(), locked.wifiScale().toLong())
-        Assert.assertEquals(source.wifiWeight().toLong(), locked.wifiWeight().toLong())
-        Assert.assertEquals(source.technologyScale().toLong(), locked.technologyScale().toLong())
-        Assert.assertEquals(source.technologyWeight().toLong(), locked.technologyWeight().toLong())
+        Assert.assertEquals(100, locked.weight().toLong())
+        Assert.assertEquals(110, locked.wifiScale().toLong())
+        Assert.assertEquals(100, locked.wifiWeight().toLong())
+        Assert.assertEquals(110, locked.technologyScale().toLong())
+        Assert.assertEquals(120, locked.technologyWeight().toLong())
         Assert.assertFalse(locked.showPercent())
-        Assert.assertEquals(source.percentScale().toLong(), locked.percentScale().toLong())
-        Assert.assertEquals(source.percentWeight().toLong(), locked.percentWeight().toLong())
+        Assert.assertEquals(105, locked.percentScale().toLong())
+        Assert.assertEquals(125, locked.percentWeight().toLong())
     }
 
     @Test
@@ -342,21 +343,21 @@ class SessionSettingsTest {
                     Assert.assertEquals(scenario, placement, expanded.batteryNumberPlacement())
                     Assert.assertEquals(scenario, source.size().toLong(), expanded.size().toLong())
                     Assert.assertEquals(scenario, 27, expanded.batterySize().toLong())
-                    Assert.assertEquals(scenario, source.weight().toLong(), expanded.weight().toLong())
-                    Assert.assertEquals(scenario, source.wifiScale().toLong(), expanded.wifiScale().toLong())
-                    Assert.assertEquals(scenario, source.wifiWeight().toLong(), expanded.wifiWeight().toLong())
+                    Assert.assertEquals(scenario, 100, expanded.weight().toLong())
+                    Assert.assertEquals(scenario, 110, expanded.wifiScale().toLong())
+                    Assert.assertEquals(scenario, 100, expanded.wifiWeight().toLong())
                     Assert.assertEquals(
                         scenario,
-                        source.technologyScale().toLong(),
+                        110,
                         expanded.technologyScale().toLong()
                     )
                     Assert.assertEquals(
                         scenario,
-                        source.technologyWeight().toLong(),
+                        120,
                         expanded.technologyWeight().toLong()
                     )
-                    Assert.assertEquals(scenario, source.percentScale().toLong(), expanded.percentScale().toLong())
-                    Assert.assertEquals(scenario, source.percentWeight().toLong(), expanded.percentWeight().toLong())
+                    Assert.assertEquals(scenario, 105, expanded.percentScale().toLong())
+                    Assert.assertEquals(scenario, 125, expanded.percentWeight().toLong())
                     Assert.assertTrue(scenario, expanded.swapContents())
                 }
             }

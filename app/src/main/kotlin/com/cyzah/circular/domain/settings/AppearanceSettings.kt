@@ -13,10 +13,8 @@ class AppearanceSettings private constructor(
     private val controlCenterProfile: StyleProfile?
 ) {
     fun controlCenter(): AppearanceSettings {
-        val profile = StyleProfile(
-            snapshot.size(), snapshot.weight(), snapshot.wifiScale(), snapshot.wifiWeight(),
-            snapshot.technologyScale(), snapshot.technologyWeight(), snapshot.showPercent(),
-            snapshot.percentScale(), snapshot.percentWeight(), snapshot.swapContents()
+        val profile = ControlCenterAppearance.profile(
+            snapshot.dualStyle(), snapshot.size(), snapshot.swapContents()
         )
         return AppearanceSettings(
             snapshot,

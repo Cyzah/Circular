@@ -154,7 +154,7 @@ open class SettingsState(context: Context, restored: Bundle?) {
             scene.mobileTechnology = "5G"
             scene.mobileSlot = 1
             scene.secondarySlot = 0
-            PreviewSceneOperations.setDual(scene, style() != DualStyle.LAYERED)
+            PreviewSceneOperations.setDual(scene, dualSimAvailable && style() != DualStyle.LAYERED)
         }
         runtime.setExpansion(if (page == 0) expansion else 0f)
         runtime.setDuoWifiProgress(if (scene.showWifi()) 1f else 0f)
@@ -185,7 +185,7 @@ open class SettingsState(context: Context, restored: Bundle?) {
         if (styles.select(style, dualSimAvailable)) {
             notifySettings()
             observation.refreshAppearanceNow()
-            editScene { PreviewSceneOperations.setDual(it, true) }
+            editScene { PreviewSceneOperations.setDual(it, dualSimAvailable) }
         }
     }
     fun toggleTheme() {

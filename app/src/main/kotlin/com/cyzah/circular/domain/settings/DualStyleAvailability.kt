@@ -2,7 +2,7 @@ package com.cyzah.circular.domain.settings
 
 object DualStyleAvailability {
     @JvmStatic fun allows(style: DualStyle?, dualSim: Boolean): Boolean {
-        return dualSim || style == DualStyle.LAYERED || style == DualStyle.GROUPED
+        return dualSim || style == DualStyle.LAYERED || style == DualStyle.CAPSULE
     }
 
     @JvmStatic fun fallback(selected: DualStyle?, dualSim: Boolean): DualStyle? {

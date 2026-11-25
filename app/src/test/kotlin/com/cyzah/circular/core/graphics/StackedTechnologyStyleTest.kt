@@ -15,6 +15,41 @@ class StackedTechnologyStyleTest {
         Assert.assertEquals(3.5f, StackedSignals.Companion.labelSize(50), .0001f)
         Assert.assertEquals(7f, StackedSignals.Companion.labelSize(100), .0001f)
         Assert.assertEquals(10.5f, StackedSignals.Companion.labelSize(150), .0001f)
+        Assert.assertEquals(6.3f, StackedSignals.Companion.labelSize(90), .0001f)
+    }
+
+    @Test
+    fun singleCardControlCenterUsesAnElevenAndAHalfDpSignalRow() {
+        Assert.assertEquals(11.5f, StackedSignals.Companion.singleRowHeight(), EPSILON)
+        Assert.assertEquals(4.6f, StackedSignals.Companion.singleRowBarHeight(0), EPSILON)
+        Assert.assertEquals(11.5f, StackedSignals.Companion.singleRowBarHeight(3), EPSILON)
+        Assert.assertEquals(5.75f, StackedSignals.Companion.sourceVisualBottomOffset(1, 1.0f), EPSILON)
+    }
+
+    @Test
+    fun singleTechnologyLabelIsCentredAboveTheShortestBarInBothDirections() {
+        val textWidth = 12.0f
+        val left = 20.0f
+        val right = 80.0f
+        for (rtl in booleanArrayOf(false, true)) {
+            val barLeft = StackedSignals.Companion.singleRowBarLeft(
+                left, right, 1.0f, rtl, textWidth
+            )
+            val barCentre = StackedSignals.Companion.singleRowShortestBarCentreX(
+                barLeft, 1.0f, rtl
+            )
+            val labelLeft = StackedSignals.Companion.singleRowLabelLeft(
+                barLeft, 1.0f, rtl, textWidth
+            )
+            val expectedCentre = if (rtl) right - textWidth / 2.0f else left + textWidth / 2.0f
+            Assert.assertEquals(expectedCentre, barCentre, EPSILON)
+            Assert.assertEquals(barCentre, labelLeft + textWidth / 2.0f, EPSILON)
+        }
+        Assert.assertEquals(
+            -3.5f,
+            StackedSignals.Companion.singleRowLabelCentreOffset(6.3f, 1.0f),
+            EPSILON
+        )
     }
 
     @Test

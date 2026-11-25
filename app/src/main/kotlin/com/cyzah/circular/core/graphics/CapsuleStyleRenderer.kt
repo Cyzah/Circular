@@ -182,7 +182,7 @@ class CapsuleStyleRenderer {
         )
     }
 
-    private fun prepareFrame(owner: IconPainter) {
+    private fun prepareFrame(owner: IconPainter, state: IconState) {
         this.frame.height = IconPainter.Companion.CAPSULE_H
         this.frame.width = bodyWidth(owner)
         this.frame.scale = CapsuleGeometry.scale(
@@ -207,13 +207,16 @@ class CapsuleStyleRenderer {
                 / 2.0f) + this.frame.dotRadius
         val maxHalf = ((this.frame.width / 2.0f)
                 - (this.frame.height / 2.0f))
-        this.frame.halfTop = min(
+        val measuredTopHalf = min(
             (this.frame.width / 2.0f)
                     - (this.frame.firstTop
                     - this.frame.dotRadius
                     - IconPainter.Companion.CAPSULE_DOT_GAP_TOP
                     - this.frame.capInset),
             maxHalf
+        )
+        this.frame.halfTop = CapsuleGeometry.signalTopHalfOpening(
+            state.dualSim(), measuredTopHalf
         )
         this.frame.halfBottom = min(
             (this.frame.width / 2.0f)
@@ -229,11 +232,14 @@ class CapsuleStyleRenderer {
         this.frame.topY = localOffset(owner.contentY(0), this.frame.scale)
         this.frame.bottomX = localOffset(owner.contentX(2), this.frame.scale)
         this.frame.bottomY = localOffset(owner.contentY(2), this.frame.scale)
-        this.frame.halfTop = adaptedSignalHalfGap(
-            this.frame.halfTop, maxHalf,
-            (IconPainter.Companion.CAPSULE_DOTS - 1) * this.frame.stepTop / 2.0f,
-            this.frame.dotRadius, this.frame.capInset, this.frame.topX, this.frame.topY,
-            IconPainter.Companion.CAPSULE_DOT_GAP_TOP
+        this.frame.halfTop = CapsuleGeometry.signalTopHalfOpening(
+            state.dualSim(),
+            adaptedSignalHalfGap(
+                this.frame.halfTop, maxHalf,
+                (IconPainter.Companion.CAPSULE_DOTS - 1) * this.frame.stepTop / 2.0f,
+                this.frame.dotRadius, this.frame.capInset, this.frame.topX, this.frame.topY,
+                IconPainter.Companion.CAPSULE_DOT_GAP_TOP
+            )
         )
         this.frame.halfBottom = adaptedSignalHalfGap(
             this.frame.halfBottom, maxHalf,
@@ -332,7 +338,7 @@ class CapsuleStyleRenderer {
 
     fun updateRingGeometry(owner: IconPainter, state: IconState) {
         measure(owner, state)
-        prepareFrame(owner)
+        prepareFrame(owner, state)
         val originX = CapsuleLayout.originX(
             this.frame.width,
             this.frame.scale,
@@ -368,7 +374,7 @@ class CapsuleStyleRenderer {
     fun batteryReadoutBounds(owner: IconPainter, state: IconState, out: RectF) {
         out.setEmpty()
         measure(owner, state)
-        prepareFrame(owner)
+        prepareFrame(owner, state)
         if (this.metrics.digits.isEmpty()) {
             return
         }
@@ -395,11 +401,15 @@ class CapsuleStyleRenderer {
     /** Painted row bounds in the same 120-unit frame as the exported dot endpoints.  */
     fun signalOpeningBounds(owner: IconPainter, state: IconState, top: RectF, bottom: RectF) {
         measure(owner, state)
-        prepareFrame(owner)
+        prepareFrame(owner, state)
         val originX =
             CapsuleLayout.originX(frame.width, frame.scale, owner.capsuleCentred, IconPainter.Companion.CAPSULE_SHIFT_X)
         val originY = 60.0f - frame.height * frame.scale / 2.0f
-        rowOpeningBounds(top, originX, originY, frame.firstTop, frame.stepTop, frame.topX, frame.topY)
+        if (state.dualSim()) {
+            rowOpeningBounds(top, originX, originY, frame.firstTop, frame.stepTop, frame.topX, frame.topY)
+        } else {
+            top.setEmpty()
+        }
         rowOpeningBounds(
             bottom, originX, originY, frame.firstBottom, frame.stepBottom,
             frame.bottomX, frame.height + frame.bottomY
@@ -650,15 +660,16 @@ class CapsuleStyleRenderer {
         if ((mask and IconPainter.Companion.MASK_HIDE_SIGNALS) != 0) {
             return
         }
-        val topBars = state.card1Bars()
-        val bottomBars = state.card2Bars()
-        val topCross = state.card1Cross()
-        val bottomCross = state.card2Cross()
+        val dual = state.dualSim()
+        val topBars = if (dual) state.card1Bars() else 0
+        val bottomBars = if (dual) state.card2Bars() else state.singleBars()
+        val topCross = dual && state.card1Cross()
+        val bottomCross = if (dual) state.card2Cross() else state.showMobileCross()
         for (dot in 0..<IconPainter.Companion.CAPSULE_DOTS) {
             val topX = this.frame.firstTop + (dot * this.frame.stepTop) + this.frame.topX
             val bottomX = (this.frame.firstBottom
                     + (dot * this.frame.stepBottom) + this.frame.bottomX)
-            if (owner.signalDotRemains(
+            if (dual && owner.signalDotRemains(
                     topCross,
                     topX,
                     this.frame.topY,

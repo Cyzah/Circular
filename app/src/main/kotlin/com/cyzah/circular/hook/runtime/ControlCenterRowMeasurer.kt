@@ -147,8 +147,12 @@ class ControlCenterRowMeasurer {
         density: Float,
         placement: BatteryNumberPlacement?
     ): Float {
-        val textSize: Float = StackedSignals.Companion.labelSize(settings.technologyScale()) * density
-        val weight = settings.technologyWeight()
+        val textSize: Float = StackedSignals.Companion.labelSize(
+            if (owner.module.state.dualSim()) settings.technologyScale()
+            else com.cyzah.circular.domain.settings.ControlCenterAppearance.SINGLE_TECHNOLOGY_SCALE
+        ) * density
+        val weight = if (owner.module.state.dualSim()) settings.technologyWeight()
+            else com.cyzah.circular.domain.settings.ControlCenterAppearance.SINGLE_TECHNOLOGY_WEIGHT
         val typeface = owner.painter.networkPaint.getTypeface()
         val firstWidth: Float
         val secondWidth: Float
@@ -180,11 +184,11 @@ class ControlCenterRowMeasurer {
             )
             secondWidth = 0.0f
         }
-        return StackedSignals.Companion.fillWidthPx(
-            max(firstWidth, secondWidth),
-            density,
-            placement
-        )
+        val labelWidth = max(firstWidth, secondWidth)
+        return if (owner.module.state.dualSim())
+            StackedSignals.Companion.fillWidthPx(labelWidth, density, placement)
+        else
+            StackedSignals.Companion.singleRowFillWidthPx(labelWidth, density)
     }
 
     companion object {

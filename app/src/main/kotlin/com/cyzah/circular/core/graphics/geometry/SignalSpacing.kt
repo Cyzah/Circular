@@ -1,8 +1,11 @@
 package com.cyzah.circular.core.graphics.geometry
 
 import kotlin.math.abs
+import kotlin.math.asin
+import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.sin
 import kotlin.math.sqrt
 
 object SignalSpacing {
@@ -172,6 +175,27 @@ object SignalSpacing {
             5.7f,
             84.0f
         )
+    }
+
+    @JvmStatic fun singleRingX(index: Int, weightScale: Float): Float {
+        return RING_CENTRE_X + (OUTER_RING_RADIUS * sin(singleRingAngle(index, weightScale)))
+    }
+
+    @JvmStatic fun singleRingY(index: Int, weightScale: Float): Float {
+        return RING_CENTRE_Y + (OUTER_RING_RADIUS * cos(singleRingAngle(index, weightScale)))
+    }
+
+    private fun singleRingAngle(index: Int, weightScale: Float): Float {
+        val safeIndex = max(0, min(3, index))
+        val firstX = rowCentre(0, 4, RING_CENTRE_X, weightScale, 5.7f, 84.0f)
+        val secondX = rowCentre(1, 4, RING_CENTRE_X, weightScale, 5.7f, 84.0f)
+        val dx = secondX - firstX
+        val dy = circleY(secondX, OUTER_RING_RADIUS) - circleY(firstX, OUTER_RING_RADIUS)
+        val referenceGap = sqrt((dx * dx) + (dy * dy))
+        val step = 2.0f * asin(
+            min(1.0f, referenceGap / (2.0f * OUTER_RING_RADIUS))
+        )
+        return (-1.5f * step) + (safeIndex * step)
     }
 
     private fun layerSpacingWeight(weightScale: Float): Float {

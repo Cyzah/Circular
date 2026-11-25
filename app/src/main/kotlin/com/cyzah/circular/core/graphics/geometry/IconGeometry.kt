@@ -22,12 +22,12 @@ object IconGeometry {
 
     @JvmStatic @JvmOverloads
     fun singleDotX(index: Int, weightScale: Float = DEFAULT_SIGNAL_WEIGHT): Float {
-        return SignalSpacing.ringX(index, weightScale)
+        return SignalSpacing.singleRingX(index, weightScale)
     }
 
     @JvmStatic @JvmOverloads
     fun singleDotY(index: Int, weightScale: Float = DEFAULT_SIGNAL_WEIGHT): Float {
-        return SignalSpacing.ringY(index, weightScale)
+        return SignalSpacing.singleRingY(index, weightScale)
     }
 
     @JvmStatic @JvmOverloads

@@ -10,7 +10,7 @@ import org.junit.Test
 class StyleSettingsTest {
     @Test
     fun unavailableSimSavesLatestDualAppearanceAndRestoresLayered() {
-        for (style in arrayOf<DualStyle>(DualStyle.DUO, DualStyle.CAPSULE)) {
+        for (style in arrayOf<DualStyle>(DualStyle.DUO)) {
             val store = MemoryStore()
             val settings = StyleSettings(store)
             store.values.put("size", 21)
@@ -46,6 +46,17 @@ class StyleSettingsTest {
             Assert.assertTrue(settings.select(DualStyle.LAYERED, true))
             Assert.assertTrue(layered.sameAs(settings.currentProfile()))
         }
+    }
+
+    @Test
+    fun singleSimCanSelectTheCapsuleProfile() {
+        val store = MemoryStore()
+        val settings = StyleSettings(store)
+
+        Assert.assertTrue(settings.select(DualStyle.CAPSULE, false))
+        Assert.assertEquals(DualStyle.CAPSULE, settings.selected())
+        Assert.assertEquals(22, settings.currentProfile().size.toLong())
+        Assert.assertFalse(settings.select(DualStyle.DUO, false))
     }
 
     @Test
