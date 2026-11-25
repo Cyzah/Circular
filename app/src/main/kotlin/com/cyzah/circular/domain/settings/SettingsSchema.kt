@@ -36,6 +36,7 @@ object SettingsSchema {
     const val AOD: String = "aod"
     const val DIAGNOSTIC_REQUEST: String = "diagnostic_request"
     const val TECHNOLOGY_TEXT: String = "technology_text"
+    const val STATUS_FONT_SOURCE: String = "status_font_source"
     const val BATTERY_NUMBER_PLACEMENT: String = "battery_number_placement"
     const val STYLE_PROFILE_DUO: String = "style_profile_duo"
     const val TOP_CONTENT_OFFSET_X_PX: String = "top_content_offset_x_px"
@@ -103,6 +104,7 @@ object SettingsSchema {
         add(definitions, CENTER_CONTENT_OFFSET_Y_HALF_PX, CENTER_CONTENT_OFFSET_Y_HALF_PX, Kind.INTEGER)
         add(definitions, BOTTOM_CONTENT_OFFSET_X_HALF_PX, BOTTOM_CONTENT_OFFSET_X_HALF_PX, Kind.INTEGER)
         add(definitions, BOTTOM_CONTENT_OFFSET_Y_HALF_PX, BOTTOM_CONTENT_OFFSET_Y_HALF_PX, Kind.INTEGER)
+        add(definitions, STATUS_FONT_SOURCE, STATUS_FONT_SOURCE, Kind.STRING)
         DEFINITIONS = java.util.Collections.unmodifiableList(definitions)
         CURSOR_COLUMNS = cursorColumns(DEFINITIONS)
     }

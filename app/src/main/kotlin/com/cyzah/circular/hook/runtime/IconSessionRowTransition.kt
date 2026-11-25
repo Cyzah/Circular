@@ -551,6 +551,7 @@ class IconSessionRowTransition(private val owner: IconSession) {
         hash = rowHash(hash, settings.technologyScale().toLong())
         hash = rowHash(hash, settings.percentScale().toLong())
         hash = rowHash(hash, settings.percentWeight().toLong())
+        hash = rowHash(hash, System.identityHashCode(owner.module.statusFont).toLong())
         if (!hostSpecific) {
             val statusSettings =
                 owner.module.sessionSettings()

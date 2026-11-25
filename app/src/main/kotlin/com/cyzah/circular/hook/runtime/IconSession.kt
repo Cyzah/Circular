@@ -736,6 +736,7 @@ class IconSession(
 
     /** 双排整块在「铺满」布局下占的宽度（px）：条带 + 间距 + 制式文本  */
     fun stackedReservePx(density: Float): Float {
+        painter.setStatusFont(module.statusFont)
         val dual = module.state.dualSim()
         val fSize: Float = StackedSignals.Companion.labelSize(
             if (dual) module.sessionSettings().technologyScale()

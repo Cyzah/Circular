@@ -1,5 +1,8 @@
 package com.cyzah.circular.ui.screen
 
+import android.content.ActivityNotFoundException
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -13,6 +16,7 @@ import com.cyzah.circular.data.settings.ConfigProvider
 import com.cyzah.circular.domain.settings.DisplayPolicy
 import com.cyzah.circular.domain.settings.SizePolicy
 import com.cyzah.circular.domain.settings.StatusColors
+import com.cyzah.circular.domain.settings.StatusFontMode
 import com.cyzah.circular.ui.state.SettingsState
 import top.yukonga.miuix.kmp.basic.BasicComponent
 
@@ -26,6 +30,48 @@ internal fun IconScaleScreen(state: SettingsState) {
         IntSlider("Wi-Fi 粗细", ConfigProvider.networkWeight(state.prefs, "wifi_weight"), 80, 180, 5, onChangeFinished = state::flushSettings, onDiscreteChange = { state.setInt("wifi_weight", it) }) { state.setIntContinuously("wifi_weight", it) }
         IntSlider("网络制式文字大小", ConfigProvider.technologyScale(state.prefs), 50, DisplayPolicy.MAX_CENTRE_PERCENT, 5, onChangeFinished = state::flushSettings, onDiscreteChange = { state.setInt("technology_scale_v2", it) }) { state.setIntContinuously("technology_scale_v2", it) }
         IntSlider("网络制式文字粗细", ConfigProvider.technologyWeight(state.prefs), 80, 180, 5, onChangeFinished = state::flushSettings, onDiscreteChange = { state.setInt("technology_weight_v2", it) }) { state.setIntContinuously("technology_weight_v2", it) }
+    }
+    StatusFontSettings(state)
+}
+
+@Composable
+private fun StatusFontSettings(state: SettingsState) {
+    val selection = remember(state, state.revision) { state.statusFontSelection() }
+    val fileName = remember(state, state.revision) { state.statusFontName() }
+    val importing = state.statusFontImporting
+    val fontPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        uri?.let(state::importStatusFont)
+    }
+    val chooseFont = {
+        try {
+            // Document providers may advertise font files as generic binary data.
+            fontPicker.launch(arrayOf("*/*"))
+        } catch (_: ActivityNotFoundException) {
+            state.info = "无法选择字体" to "请启用系统文件管理应用后重试。"
+        }
+    }
+
+    Section("字体替换") {
+        ChoicePreference(
+            title = "状态图标字体",
+            options = listOf("默认", "系统", "自定义"),
+            selected = selection.mode.ordinal,
+            darkTheme = state.darkTheme,
+            summary = "用于电量数字和网络制式文字。自定义支持 TTF 和 OTF。",
+            enabled = !importing,
+        ) { index ->
+            state.selectStatusFont(StatusFontMode.entries[index], chooseFont)
+        }
+        if (importing) {
+            Note("正在导入字体…")
+        } else if (selection.mode == StatusFontMode.CUSTOM) {
+            BasicComponent(
+                title = "更换字体文件",
+                summary = fileName,
+                insideMargin = SettingsRowInsets,
+                onClick = chooseFont,
+            )
+        }
     }
 }
 

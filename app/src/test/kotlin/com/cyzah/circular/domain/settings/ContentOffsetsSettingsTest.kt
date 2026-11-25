@@ -131,7 +131,7 @@ class ContentOffsetsSettingsTest {
         val legacyPixels = intArrayOf(-23, -23, 21, 4, 23, 24)
         for (i in OFFSET_KEYS.indices) values.values.put(OFFSET_KEYS[i], raw[i])
         val columns = SettingsSchema.CURSOR_COLUMNS
-        Assert.assertEquals(46, columns.size.toLong())
+        Assert.assertEquals(47, columns.size.toLong())
         Assert.assertArrayEquals(
             arrayOf<String>(
                 "mode", "size", "colour", "weight", "lockscreen", "aod",

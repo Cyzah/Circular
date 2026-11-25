@@ -63,6 +63,7 @@ class SessionPaintFrame {
             owner.painter, settings.appearance(),
             owner.module.currentDuoWifiProgress()
         )
+        owner.painter.setStatusFont(owner.module.statusFont)
         // 固定用设计宽高比，不跟宿主实测宽高比走：控制中心下拉时图标视图的宽度是逐帧插值的，
         // 跟着它算会让胶囊在下拉过程中被等比缩小、收手时又突然弹回用户设置的大小
         owner.painter.setCapsuleAspect(IconPainter.Companion.CAPSULE_ASPECT)

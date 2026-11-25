@@ -14,7 +14,7 @@ class SettingsRowSerializerTest {
                 0, 24, 1, 120, 1, 1, "", 20, 0, 100, 120, 130, 0, 100,
                 -0xff6000, -0xd9da, -0x5b00, -0xd07f13, 130, 0, 100, 100,
                 120, 100, 100, 100, 0, 1, 0, 0, 0, "", 2, "", 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0, 0, 0
+                0, 0, 0, 0, 0, 0, "default"
             ), SettingsRowSerializer.create(MapValues(HashMap<String?, Any?>()))
         )
     }
@@ -30,9 +30,24 @@ class SettingsRowSerializerTest {
                 -0xddccbc, -0xaa9989, -0x776656, -0x443323, 180, 1, 145, 125,
                 162, 115, 95, 135, 1, 0, 1, 0, 0, "LTE=4G;5G=5G+", 1,
                 "v1|27|100|95|110|95|110|1|100|140|0", 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0, 0, 0
+                0, 0, 0, 0, 0, 0, "default"
             ), row
         )
+    }
+
+    @Test
+    fun customFontSelectionSurvivesProviderAndStartupCacheRoundTrips() {
+        val preferences = distinctPreferences()
+        val selection = "custom:${"a".repeat(32)}"
+        preferences["status_font_source"] = selection
+        val wire = CursorValues(SettingsRowSerializer.create(MapValues(preferences))!!)
+        val cache = com.cyzah.circular.data.settings.StartupAppearanceCodec
+        val record = cache.appearance(wire, 1, true)
+
+        Assert.assertEquals(selection, SettingsSnapshot.from(wire).statusFont().encode())
+        Assert.assertEquals(selection, SettingsSnapshot.from(
+            requireNotNull(cache.restoreAppearance(record, 1))
+        ).statusFont().encode())
     }
 
     @Test

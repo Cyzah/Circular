@@ -90,6 +90,9 @@ object SettingsRowSerializer {
         row.put(SettingsSchema.CENTER_CONTENT_OFFSET_Y_HALF_PX, offsets.centerY)
         row.put(SettingsSchema.BOTTOM_CONTENT_OFFSET_X_HALF_PX, offsets.bottomX)
         row.put(SettingsSchema.BOTTOM_CONTENT_OFFSET_Y_HALF_PX, offsets.bottomY)
+        row.put(SettingsSchema.STATUS_FONT_SOURCE, StatusFontSelection.decode(
+            prefs.getString(SettingsSchema.STATUS_FONT_SOURCE, null)
+        ).encode())
         return row.build()
     }
 

@@ -5,6 +5,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -24,6 +25,7 @@ import com.cyzah.circular.core.network.IconState
 import com.cyzah.circular.data.settings.ConfigProvider
 import com.cyzah.circular.data.settings.SharedPreferencesSettingsStore
 import com.cyzah.circular.data.settings.SettingsMutation
+import com.cyzah.circular.data.settings.StatusFontFiles
 import com.cyzah.circular.domain.settings.*
 import com.cyzah.circular.framework.device.DualSimCapability
 import com.cyzah.circular.framework.device.ScopeRestarter
@@ -180,6 +182,54 @@ open class SettingsState(context: Context, restored: Bundle?) {
     fun setIntContinuously(key: String, value: Int) = write(SettingsMutation.integer(key,
         if (key == SettingsSchema.SIZE) SizePolicy.clamp(style(), value) else value), continuous = true)
     fun setTechnologyText(value: String) = write(SettingsMutation.text("technology_text", value))
+
+    val statusFontImporting: Boolean get() = importingStatusFont
+
+    fun statusFontSelection(): StatusFontSelection =
+        StatusFontSelection.decode(prefs.getString(SettingsSchema.STATUS_FONT_SOURCE, null))
+
+    fun statusFontName(): String? = prefs.getString(StatusFontFiles.NAME_PREFERENCE, null)?.takeIf { it.isNotBlank() }
+
+    fun selectStatusFont(mode: StatusFontMode, onImportNeeded: () -> Unit) {
+        if (disposed || statusFontImporting) return
+        val selection = when (mode) {
+            StatusFontMode.DEFAULT -> StatusFontSelection.DEFAULT
+            StatusFontMode.SYSTEM -> StatusFontSelection.SYSTEM
+            StatusFontMode.CUSTOM -> StatusFontFiles.savedSelection(app)
+        }
+        if (selection == null) {
+            onImportNeeded()
+        } else {
+            write(SettingsMutation.text(SettingsSchema.STATUS_FONT_SOURCE, selection.encode()))
+        }
+    }
+
+    fun importStatusFont(uri: Uri) {
+        if (disposed || statusFontImporting) return
+        importingStatusFont = true
+        Thread({
+            val imported = try {
+                StatusFontFiles.importFont(app, uri)
+                true
+            } catch (_: Exception) {
+                false
+            }
+            app.mainExecutor.execute {
+                importingStatusFont = false
+                if (imported) {
+                    if (disposed) {
+                        app.contentResolver.notifyChange(ConfigProvider.URI, null)
+                    } else {
+                        observation.refreshAppearanceNow()
+                        notifySettings()
+                    }
+                } else if (!disposed) {
+                    info = "字体导入失败" to "请选择可读取的 TTF 或 OTF 字体文件后重试。"
+                }
+            }
+        }, "circular-font-import").start()
+    }
+
     fun selectStyle(style: DualStyle) {
         dualSimAvailable = DualSimCapability.available(app)
         if (styles.select(style, dualSimAvailable)) {
@@ -328,6 +378,10 @@ open class SettingsState(context: Context, restored: Bundle?) {
             }
         } catch (_: Exception) { NetworkTechnologyOptions.all() }
         return NetworkTechnologyOptions.withSelected(available, selected).toList()
+    }
+
+    private companion object {
+        var importingStatusFont by mutableStateOf(false)
     }
 }
 

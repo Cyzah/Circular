@@ -6,6 +6,25 @@ import org.junit.Test
 
 class SettingsSnapshotTest {
     @Test
+    fun fontSelectionDefaultsSafelyAndInvalidatesAppearanceWhenReplaced() {
+        val values = HashMap<String?, Any?>()
+        val original = SettingsSnapshot.from(MapValues(values))
+        Assert.assertEquals(StatusFontSelection.DEFAULT, original.statusFont())
+        values["status_font_source"] = "custom:../../settings"
+        Assert.assertTrue(original.sameAppearanceAs(SettingsSnapshot.from(MapValues(values))))
+        values["status_font_source"] = "system"
+        val system = SettingsSnapshot.from(MapValues(values))
+        Assert.assertEquals(StatusFontSelection.SYSTEM, system.statusFont())
+        Assert.assertFalse(original.sameAppearanceAs(system))
+        values["status_font_source"] = "custom:${"a".repeat(32)}"
+        val custom = SettingsSnapshot.from(MapValues(values))
+        Assert.assertEquals(StatusFontMode.CUSTOM, custom.statusFont().mode)
+        Assert.assertEquals(values["status_font_source"], custom.statusFont().encode())
+        values["status_font_source"] = "custom:${"b".repeat(32)}"
+        Assert.assertFalse(custom.sameAppearanceAs(SettingsSnapshot.from(MapValues(values))))
+    }
+
+    @Test
     fun defaultsAreClampedAndStable() {
         val snapshot: SettingsSnapshot = SettingsSnapshot.Companion.from(MapValues(HashMap<String?, Any?>()))
 

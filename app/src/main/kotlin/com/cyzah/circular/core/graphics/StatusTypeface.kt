@@ -6,6 +6,8 @@ import android.graphics.fonts.Font
 import android.graphics.fonts.FontFamily
 import android.graphics.fonts.FontStyle
 import android.util.Log
+import com.cyzah.circular.domain.settings.StatusFontMode
+import com.cyzah.circular.domain.settings.StatusFontSelection
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.nio.ByteBuffer
@@ -82,6 +84,35 @@ object StatusTypeface {
             buffer.put(bytes)
             buffer.flip()
             return buffer
+        }
+    }
+}
+
+/** Resolved font and its weighted faces, shared by the painters in one process. */
+internal class StatusFont private constructor(
+    val selection: StatusFontSelection,
+    private val base: Typeface? = null
+) {
+    private val weighted = mutableMapOf<Int, Typeface>()
+
+    fun forWeight(weight: Int): Typeface? {
+        if (selection.mode == StatusFontMode.DEFAULT) return StatusTypeface.forWeight(weight)
+        return weighted.getOrPut(weight) { Typeface.create(base ?: Typeface.DEFAULT, weight, false) }
+    }
+
+    companion object {
+        val DEFAULT = StatusFont(StatusFontSelection.DEFAULT)
+        val SYSTEM = StatusFont(StatusFontSelection.SYSTEM)
+
+        fun resolve(selection: StatusFontSelection, load: (String) -> Typeface?): StatusFont {
+            return when (selection.mode) {
+                StatusFontMode.DEFAULT -> DEFAULT
+                StatusFontMode.SYSTEM -> SYSTEM
+                StatusFontMode.CUSTOM -> {
+                    val face = selection.customToken?.let(load)
+                    if (face == null) DEFAULT else StatusFont(selection, face)
+                }
+            }
         }
     }
 }

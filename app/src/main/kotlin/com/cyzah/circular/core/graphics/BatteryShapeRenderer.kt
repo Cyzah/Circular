@@ -38,7 +38,6 @@ class BatteryShapeRenderer {
     private val insideNumberMask = Paint(Paint.ANTI_ALIAS_FLAG)
     private val numberInk = Rect()
     private val outsideNumberMetrics = Paint.FontMetrics()
-    private var outsideNumberWeight = Int.MIN_VALUE
     private val collapseFillMatrix = Matrix()
     private var collapseFill: LinearGradient? = null
     private var collapseFillBattery = -1
@@ -584,10 +583,9 @@ class BatteryShapeRenderer {
     }
 
     private fun prepareOutsideNumberPaint(owner: IconPainter) {
-        val weight = StatusFontWeight.battery(owner.batteryWeightPercent())
-        if (this.outsideNumberWeight != weight) {
-            this.outsideNumberWeight = weight
-            this.outsideNumberPaint.setTypeface(StatusTypeface.forWeight(weight))
+        val typeface = owner.textPaint.typeface
+        if (outsideNumberPaint.typeface !== typeface) {
+            outsideNumberPaint.typeface = typeface
         }
         this.outsideNumberPaint.setTextSize(
             configuredNumberTextSizeSvg(owner, BatteryNumberPlacement.OUTSIDE)

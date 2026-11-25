@@ -49,6 +49,7 @@ class ControlCenterRowMeasurer {
             settings.technologyWeight()
         )
         owner.painter.setBatteryWeightPercent(settings.percentWeight())
+        owner.painter.setStatusFont(owner.module.statusFont)
         owner.painter.setBatteryText(settings.percentScale())
 
         val batteryVisible = state.battery >= 0

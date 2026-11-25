@@ -18,6 +18,7 @@ import com.cyzah.circular.core.diagnostics.MotionTrace
 import com.cyzah.circular.core.graphics.IconPainter
 import com.cyzah.circular.core.graphics.PainterConfigurator
 import com.cyzah.circular.core.graphics.StackedSignals
+import com.cyzah.circular.core.graphics.StatusFont
 import com.cyzah.circular.core.graphics.animation.BatteryTransferProjection
 import com.cyzah.circular.core.graphics.animation.BatteryTransferState
 import com.cyzah.circular.core.graphics.animation.FrameGate
@@ -29,6 +30,7 @@ import com.cyzah.circular.core.network.NetworkSource
 import com.cyzah.circular.core.network.SignalResourcePolicy
 import com.cyzah.circular.data.settings.ConfigProvider
 import com.cyzah.circular.data.settings.StartupAppearanceCache
+import com.cyzah.circular.data.settings.StatusFontFiles
 import com.cyzah.circular.domain.settings.AppearanceScale
 import com.cyzah.circular.domain.settings.DisplayPolicy
 import com.cyzah.circular.domain.settings.SettingsSnapshot
@@ -242,6 +244,8 @@ class ModuleMain : XposedModule() {
     @JvmField var performanceColor: Int = StatusColors.PERFORMANCE
     private var sessionSettings: SessionSettings = SessionSettings.Companion.defaults()
     private var controlCenterSettings: SessionSettings = SessionSettings.Companion.defaults().controlCenter()
+    @Volatile internal var statusFont = StatusFont.DEFAULT
+        private set
     @JvmField val lockMotionTrace: MotionTrace = MotionTrace(8)
     @JvmField val realLockTrace: MotionTrace = MotionTrace(16)
     @JvmField var firstLockReturn: String = "尚未捕获收起后锁屏绘制"
@@ -687,6 +691,7 @@ class ModuleMain : XposedModule() {
         if (this.context == null || !checkCompatibility() || this.sessionSettings.compatible()) return
         val cached = StartupAppearanceCache.restore(this.context)
         if (cached == null) return
+        statusFont = StatusFont.resolve(cached.statusFont()) { null }
         applySettings(cached, true)
         if (StartupAppearanceCache.restoreTopology(this.context, this.state)) {
             for (session in this.batteries.values) session.changed()
@@ -761,9 +766,15 @@ class ModuleMain : XposedModule() {
         }
         val fSnapshot = snapshot
         val fCompatibility = compatibility
+        val font = fSnapshot?.statusFont()?.let { selection ->
+            val current = statusFont
+            if (current.selection == selection) current
+            else StatusFont.resolve(selection) { StatusFontFiles.load(this.context!!, it) }
+        }
         this.main.post(object : Runnable {
             // java.lang.Runnable
             override fun run() {
+                if (font != null) statusFont = font
                 this@ModuleMain.applySettings(fSnapshot, fCompatibility)
             }
         })
@@ -1229,6 +1240,7 @@ class ModuleMain : XposedModule() {
             settings.appearance(),
             currentDuoWifiProgress()
         )
+        ruler.setStatusFont(statusFont)
         ruler.setContentPixelUnit(contentPixelUnit(settings))
         return ruler
     }
@@ -1258,6 +1270,7 @@ class ModuleMain : XposedModule() {
             this.sessionSettings.appearance(),
             currentDuoWifiProgress()
         )
+        iconPainter.setStatusFont(statusFont)
         iconPainter.setContentPixelUnit(contentPixelUnit(this.sessionSettings))
     }
 

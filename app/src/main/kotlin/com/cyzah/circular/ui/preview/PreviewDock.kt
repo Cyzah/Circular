@@ -10,10 +10,17 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import com.cyzah.circular.core.graphics.StatusFont
+import com.cyzah.circular.data.settings.StatusFontFiles
+import com.cyzah.circular.domain.settings.SettingsSchema
+import com.cyzah.circular.domain.settings.StatusFontSelection
 import com.cyzah.circular.ui.components.LocalCircularContentBackdrop
 import com.cyzah.circular.ui.state.SettingsState
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import top.yukonga.miuix.kmp.glass.glassPanel
 import top.yukonga.miuix.kmp.material.GlassDefaults
 import top.yukonga.miuix.kmp.material.GlassEdgeStrokes
@@ -32,6 +39,16 @@ fun PreviewDock(state: SettingsState, modifier: Modifier = Modifier) {
     var view by remember { mutableStateOf<SettingsPreviewView?>(null) }
     val sceneRevision = state.sceneRevision
     val revision = state.revision
+    val app = LocalContext.current.applicationContext
+    val fontSelection = remember(state, revision) {
+        StatusFontSelection.decode(state.prefs.getString(SettingsSchema.STATUS_FONT_SOURCE, null))
+    }
+    var statusFont by remember(state) { mutableStateOf(StatusFont.DEFAULT) }
+    LaunchedEffect(app, fontSelection) {
+        statusFont = withContext(Dispatchers.IO) {
+            StatusFont.resolve(fontSelection) { StatusFontFiles.load(app, it) }
+        }
+    }
     // Capture values in update so AndroidView refreshes when its Java state changes.
     val previewDark = remember(sceneRevision) { state.runtime.dark() }
     val sceneDescription = remember(sceneRevision) { state.scene.description() }
@@ -54,6 +71,7 @@ fun PreviewDock(state: SettingsState, modifier: Modifier = Modifier) {
                 SettingsPreviewView(context, state.scene, state.prefs, state.runtime,
                     { state.style() }, { state.previewDarkChanged() }).also { view = it }
             }, update = {
+                it.setStatusFont(statusFont)
                 it.setSceneRevision(sceneRevision)
                 it.setBackgroundColor(android.graphics.Color.TRANSPARENT)
                 it.contentDescription = "实时预览，点击切换深浅背景。模拟数据：$sceneDescription"

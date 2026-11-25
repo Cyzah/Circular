@@ -32,7 +32,8 @@ class SettingsSnapshot private constructor(
     private val diagnosticRequest: String?,
     private val technologyText: String,
     private val batteryNumberPlacement: BatteryNumberPlacement,
-    private val contentOffsets: ContentOffsets
+    private val contentOffsets: ContentOffsets,
+    private val statusFont: StatusFontSelection
 ) {
     fun mode(): Int {
         return mode
@@ -42,6 +43,7 @@ class SettingsSnapshot private constructor(
     fun sameAppearanceAs(other: SettingsSnapshot?): Boolean {
         return other != null && mode == other.mode && size == other.size && batterySize == other.batterySize && coloured == other.coloured && weight == other.weight && wifiWeight == other.wifiWeight && technologyWeight == other.technologyWeight && wifiScale == other.wifiScale && technologyScale == other.technologyScale && percentScale == other.percentScale && percentWeight == other.percentWeight && swapContents == other.swapContents && keepMergedShade == other.keepMergedShade && stackedShade == other.stackedShade && groupedDots == other.groupedDots && capsuleDual == other.capsuleDual && duoDual == other.duoDual && chargeColor == other.chargeColor && lowColor == other.lowColor && saverColor == other.saverColor && performanceColor == other.performanceColor && lowBatteryThreshold == other.lowBatteryThreshold && showPercent == other.showPercent && lockscreen == other.lockscreen && aod == other.aod && technologyText == other.technologyText
                 && batteryNumberPlacement == other.batteryNumberPlacement && contentOffsets.equals(other.contentOffsets)
+                && statusFont == other.statusFont
     }
 
     fun size(): Int {
@@ -159,6 +161,8 @@ class SettingsSnapshot private constructor(
     fun contentOffsets(): ContentOffsets {
         return contentOffsets
     }
+
+    fun statusFont(): StatusFontSelection = statusFont
 
     companion object {
         @JvmStatic fun from(values: SettingsValues): SettingsSnapshot {
@@ -328,7 +332,8 @@ class SettingsSnapshot private constructor(
                         BatteryNumberPlacement.DEFAULT.value
                     )
                 ),
-                SettingsRowSerializer.contentOffsets(values)
+                SettingsRowSerializer.contentOffsets(values),
+                StatusFontSelection.decode(values.getString(SettingsSchema.STATUS_FONT_SOURCE, null))
             )
         }
 

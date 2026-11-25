@@ -10,6 +10,7 @@ import android.database.MatrixCursor
 import android.net.Uri
 import android.os.Binder
 import android.os.Bundle
+import android.os.ParcelFileDescriptor
 import android.os.Process
 import com.cyzah.circular.BuildConfig
 import com.cyzah.circular.core.graphics.BatteryHeader
@@ -19,6 +20,7 @@ import com.cyzah.circular.domain.settings.BatteryNumberPlacement
 import com.cyzah.circular.domain.settings.InstallDefaults
 import com.cyzah.circular.domain.settings.SettingsRowSerializer
 import com.cyzah.circular.domain.settings.SettingsSchema
+import java.io.FileNotFoundException
 
 class ConfigProvider : ContentProvider() {
     // android.content.ContentProvider
@@ -54,6 +56,13 @@ class ConfigProvider : ContentProvider() {
         val matrixCursor = MatrixCursor(SettingsSchema.CURSOR_COLUMNS)
         matrixCursor.addRow(SettingsCursorRow.create(sharedPreferencesPrefs))
         return matrixCursor
+    }
+
+    @Throws(FileNotFoundException::class)
+    override fun openFile(uri: Uri, mode: String): ParcelFileDescriptor {
+        checkCaller()
+        if (mode != "r") throw FileNotFoundException("Status font is read only")
+        return StatusFontFiles.openSelectedFont(requireNotNull(context), uri)
     }
 
     // android.content.ContentProvider

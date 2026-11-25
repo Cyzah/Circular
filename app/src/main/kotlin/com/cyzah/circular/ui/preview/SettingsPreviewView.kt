@@ -20,6 +20,7 @@ import com.cyzah.circular.core.graphics.OpeningBatteryRenderer
 import com.cyzah.circular.core.graphics.PainterConfigurator
 import com.cyzah.circular.core.graphics.StackedOverlayRenderer
 import com.cyzah.circular.core.graphics.StackedSignals
+import com.cyzah.circular.core.graphics.StatusFont
 import com.cyzah.circular.core.graphics.WifiGlyphRenderer
 import com.cyzah.circular.core.graphics.animation.BatteryTransferConfig
 import com.cyzah.circular.core.graphics.animation.BatteryTransferPolicy
@@ -70,6 +71,14 @@ class SettingsPreviewView(
     private val painter = IconPainter()
     private val rowPainter = IconPainter()
     private val settingsCache: PreviewSettingsCache
+    private var statusFont = StatusFont.DEFAULT
+
+    internal fun setStatusFont(font: StatusFont) {
+        if (statusFont === font) return
+        statusFont = font
+        runtime.resetBatteryTransfer()
+        invalidate()
+    }
     private val row = PreviewRowGeometry()
     private val swappedWifi = SwappedWifiMotion()
     private val wifiTransferGlyphs = WifiGlyphRenderer()
@@ -313,6 +322,7 @@ class SettingsPreviewView(
 
     private fun configurePainter(target: IconPainter, settings: AppearanceSettings) {
         PainterConfigurator.apply(target, settings, this.runtime.duoWifiProgress())
+        target.setStatusFont(statusFont)
         target.setCapsuleDual(settings.capsuleDual())
         target.setDuoDual(this.state.dualSim() && settings.duoDual())
         target.setCapsuleAspect(IconPainter.Companion.CAPSULE_ASPECT)

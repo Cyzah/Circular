@@ -23,6 +23,7 @@ import com.cyzah.circular.domain.settings.StatusColors
 import kotlin.math.max
 import kotlin.math.min
 class IconPainter {
+    private var statusFont = StatusFont.DEFAULT
     private var headerHeight = 0f
     private var headerWidth = 0f
     private var headerWifiScale = 0f
@@ -342,10 +343,24 @@ class IconPainter {
         val iWeight = DisplayPolicy.weight(i2)
         if (this.technologyWeightPercent != iWeight) {
             this.technologyWeightPercent = iWeight
-            this.networkPaint.setTypeface(AppearanceScale.technologyTypeface(iWeight))
-            this.suffixPaint.setTypeface(this.networkPaint.getTypeface())
+            updateTechnologyTypeface()
         }
         this.wifiGlyphs.setWeightPercent(i)
+    }
+    internal fun setStatusFont(font: StatusFont) {
+        if (statusFont === font) return
+        statusFont = font
+        updateTechnologyTypeface()
+        updateBatteryTypeface()
+    }
+
+    private fun updateTechnologyTypeface() {
+        networkPaint.typeface = statusFont.forWeight(StatusFontWeight.technology(technologyWeightPercent))
+        suffixPaint.typeface = networkPaint.typeface
+    }
+
+    private fun updateBatteryTypeface() {
+        textPaint.typeface = statusFont.forWeight(StatusFontWeight.battery(batteryWeightPercent))
     }
     fun setBatteryWeightPercent(i: Int) {
         val iWeight = BatteryHeader.weight(i)
@@ -353,7 +368,7 @@ class IconPainter {
             return
         }
         this.batteryWeightPercent = iWeight
-        this.textPaint.setTypeface(StatusTypeface.forWeight(StatusFontWeight.battery(iWeight)))
+        updateBatteryTypeface()
         this.textPaint.setWeightPercent(iWeight)
     }
     fun batteryWeightPercent(): Int {
